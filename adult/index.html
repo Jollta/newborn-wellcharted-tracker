@@ -25,16 +25,26 @@
   .disc-x{margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.2rem;color:#b37800;flex-shrink:0;padding:2px 6px}
 
   /* HEADER */
-  header{background:linear-gradient(135deg,var(--navy-dk),var(--navy));color:#fff;padding:12px 16px;position:sticky;top:0;z-index:1000;box-shadow:0 4px 24px rgba(30,51,102,.25)}
-  .hdr-row{display:flex;align-items:center;gap:10px}
-  .brand h1{font-family:'Lora',serif;font-size:1.1rem;font-weight:600;line-height:1.2;flex:1}
-  .brand p{font-size:.65rem;opacity:.6;text-transform:uppercase;letter-spacing:.4px}
-  .print-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 10px;font-size:.72rem;color:#fff;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;flex-shrink:0}
+  header{background:linear-gradient(135deg,var(--navy-dk),var(--navy));color:#fff;padding:18px 28px 0;position:sticky;top:0;z-index:1000;box-shadow:0 4px 24px rgba(30,51,102,.25)}
+  .hdr-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .brand h1{font-family:'Lora',serif;font-size:1.55rem;font-weight:600;line-height:1.2;flex:1}
+  .brand p{font-size:.72rem;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
+  .print-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:.75rem;color:#fff;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;flex-shrink:0}
 
-  /* MENU TOGGLE — always visible, styled as pill button */
-  .menu-toggle{background:var(--amber);border:none;border-radius:20px;color:var(--navy-dk);padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px}
+  /* DESKTOP HORIZONTAL TAB BAR */
+  .desktop-nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding-top:4px}
+  .desktop-nav::-webkit-scrollbar{display:none}
+  .desktop-nav-wrap{display:flex;align-items:flex-end;gap:0;position:relative}
+  .nav-scroll-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;flex-shrink:0;cursor:pointer;font-size:1rem;align-self:stretch;display:flex;align-items:center;justify-content:center}
+  .nav-scroll-btn:hover{background:rgba(255,255,255,.28)}
+  .dtab{display:flex;align-items:center;gap:5px;padding:8px 12px;border-radius:8px 8px 0 0;background:transparent;border:none;color:rgba(255,255,255,.65);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s;-webkit-tap-highlight-color:transparent}
+  .dtab:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9)}
+  .dtab.active{background:var(--bg);color:var(--navy);font-weight:700}
 
-  /* NAV DRAWER — hidden by default, shown when .open */
+  /* MOBILE MENU TOGGLE — hidden on desktop */
+  .menu-toggle{display:none;background:var(--amber);border:none;border-radius:20px;color:var(--navy-dk);padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif;align-items:center;gap:5px}
+
+  /* MOBILE NAV DRAWER — hidden by default */
   .nav-drawer{display:none;flex-direction:column;padding:8px 12px 14px;gap:4px;background:var(--navy-dk);border-top:1px solid rgba(255,255,255,.1)}
   .nav-drawer.open{display:flex}
   .nav-tab{display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:10px;background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.85);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;text-align:left;width:100%;transition:background .15s;-webkit-tap-highlight-color:transparent}
@@ -42,10 +52,21 @@
   .nav-tab.active{background:rgba(255,255,255,.2);color:#fff;font-weight:700;border-left:3px solid var(--amber)}
   .nav-tab-icon{font-size:1.1rem;width:24px;flex-shrink:0}
 
-  /* CURRENT TAB INDICATOR — shows what tab is active */
-  .current-tab-bar{background:var(--navy);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--amber)}
+  /* CURRENT TAB INDICATOR — mobile only */
+  .current-tab-bar{display:none;background:var(--navy);padding:8px 16px;align-items:center;justify-content:space-between;border-bottom:2px solid var(--amber)}
   .current-tab-label{color:#fff;font-size:.88rem;font-weight:600}
   .current-tab-hint{color:rgba(255,255,255,.5);font-size:.72rem}
+
+  /* RESPONSIVE — switch at 768px */
+  @media(max-width:768px){
+    header{padding:10px 14px 0}
+    .hdr-row{margin-bottom:8px}
+    .brand h1{font-size:1rem}
+    .brand p{display:none}
+    .desktop-nav-wrap{display:none}
+    .menu-toggle{display:flex}
+    .current-tab-bar{display:flex}
+  }
 
   /* MAIN */
   main{max-width:1220px;margin:0 auto;padding:18px 14px 80px}
@@ -193,19 +214,27 @@
   <div class="hdr-row">
     <div class="brand" style="flex:1;min-width:0">
       <h1>Health Confidence Tracker</h1>
-      <p>WellCharted.health</p>
+      <p>WellCharted.health · For tracking &amp; communication purposes only</p>
     </div>
-    <button class="print-btn" onclick="window.print()">🖨 Print</button>
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <!-- Mobile only -->
     <button class="menu-toggle" id="menu-toggle" onclick="toggleNav()">☰ Menu</button>
   </div>
 
-  <!-- VERTICAL NAV DRAWER -->
+  <!-- DESKTOP horizontal tab bar -->
+  <div class="desktop-nav-wrap">
+    <button class="nav-scroll-btn" onclick="scrollNav(-120)">‹</button>
+    <div class="desktop-nav" id="desktop-nav"></div>
+    <button class="nav-scroll-btn" onclick="scrollNav(120)">›</button>
+  </div>
+
+  <!-- MOBILE vertical nav drawer -->
   <div class="nav-drawer" id="nav-drawer"></div>
 </header>
 
-<!-- CURRENT TAB INDICATOR -->
+<!-- CURRENT TAB INDICATOR — mobile only -->
 <div class="current-tab-bar" id="current-tab-bar">
-  <span class="current-tab-label" id="current-tab-label">📅 PCP Visits</span>
+  <span class="current-tab-label" id="current-tab-label">📱 How To Use</span>
   <span class="current-tab-hint">Tap Menu to switch tabs</span>
 </div>
 
@@ -214,6 +243,7 @@
 
 <script>
 const TABS=[
+  {id:'howto',icon:'📱',label:'How To Use This Tracker'},
   {id:'pcp',icon:'📅',label:'PCP Visits'},
   {id:'questions',icon:'❓',label:'Top 3 Questions'},
   {id:'history',icon:'📋',label:'Health History'},
@@ -251,7 +281,7 @@ const S={
   labs:load('labs',[]),vaccines:load('vaccines',[]),
 };
 
-let activeTab='pcp', vhForm='vision', ciForm='contact';
+let activeTab='howto', vhForm='vision', ciForm='contact';
 let navOpen=false;
 
 function uid(){return Date.now()+Math.random().toString(36).slice(2,6)}
@@ -278,15 +308,29 @@ function closeNav(){
 }
 
 function buildNav(){
-  document.getElementById('nav-drawer').innerHTML=TABS.map(t=>
-    `<button class="nav-tab${t.id===activeTab?' active':''}" onclick="sw('${t.id}')">
-      <span class="nav-tab-icon">${t.icon}</span> ${t.label}
-    </button>`
-  ).join('');
-  // Update current tab label
+  // Desktop horizontal tabs
+  const desktopNav=document.getElementById('desktop-nav');
+  if(desktopNav){
+    desktopNav.innerHTML=TABS.map(t=>
+      `<button class="dtab${t.id===activeTab?' active':''}" onclick="sw('${t.id}')">${t.icon} ${t.label}</button>`
+    ).join('');
+    setTimeout(()=>{const a=desktopNav.querySelector('.dtab.active');if(a)a.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});},50);
+  }
+  // Mobile drawer
+  const mobileNav=document.getElementById('nav-drawer');
+  if(mobileNav){
+    mobileNav.innerHTML=TABS.map(t=>
+      `<button class="nav-tab${t.id===activeTab?' active':''}" onclick="sw('${t.id}')">
+        <span class="nav-tab-icon">${t.icon}</span> ${t.label}
+      </button>`
+    ).join('');
+  }
+  // Update current tab label (mobile bar)
   const cur=TABS.find(t=>t.id===activeTab);
-  if(cur) document.getElementById('current-tab-label').textContent=`${cur.icon} ${cur.label}`;
+  if(cur){const el=document.getElementById('current-tab-label');if(el)el.textContent=`${cur.icon} ${cur.label}`;}
 }
+
+function scrollNav(dx){const n=document.getElementById('desktop-nav');if(n)n.scrollBy({left:dx,behavior:'smooth'});}
 
 function sw(id){
   activeTab=id;
@@ -297,7 +341,7 @@ function sw(id){
 }
 
 function render(){
-  const rs={pcp:rPCP,questions:rQ,history:rHist,urgent:rUC,bp:rBP,bs:rBS,meds:rMeds,
+  const rs={howto:rHowTo,pcp:rPCP,questions:rQ,history:rHist,urgent:rUC,bp:rBP,bs:rBS,meds:rMeds,
     referrals:rRef,specialist:rSpec,screening:rScr,vision:rVis,contacts:rCon,
     upcoming:rUpcoming,labs:rLabs,vaccines:rVax};
   document.getElementById('main').innerHTML=`<div class="panel active">${(rs[activeTab]||rPCP)()}</div>`;
@@ -312,6 +356,94 @@ function sbadge(s){
 function ssel(val,fn,opts){
   const o=opts||['Scheduled','Completed','Pending','Cancelled','Missed','In Progress','No entry'];
   return `<select class="ssel" onchange="(${fn})(this.value)">${o.map(x=>`<option${x===val?' selected':''}>${x}</option>`).join('')}</select>`;
+}
+
+/* ══ HOW TO USE ══ */
+function rHowTo(){
+  return `<div class="sec-title">📱 How To Use This Tracker</div>
+    <p class="sec-sub">Everything you need to know to get the most out of your Health Confidence Tracker.</p>
+
+    <!-- MOBILE NAV CALLOUT — most important tip -->
+    <div style="background:linear-gradient(135deg,var(--navy-dk),var(--navy));border-radius:var(--radius);padding:18px 16px;margin-bottom:16px;color:#fff">
+      <div style="font-family:'Lora',serif;font-size:1.1rem;font-weight:600;margin-bottom:10px">📱 Navigating on Your Phone</div>
+      <div style="font-size:.92rem;line-height:1.7;opacity:.92">
+        This tracker has <strong style="color:var(--amber)">16 tabs</strong> covering every area of your health.<br><br>
+        On a phone or tablet, all tabs are accessed through the <strong style="color:var(--amber)">gold ☰ Menu button</strong> in the top right corner of the header.<br><br>
+        <strong>Tap ☰ Menu</strong> → a full list of all 16 tabs drops down → <strong>tap any tab</strong> to go there → the menu closes automatically.<br><br>
+        The bar below the header always shows you <strong style="color:var(--amber)">which tab you are currently on.</strong>
+      </div>
+    </div>
+
+    <!-- QUICK START CARDS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">💾</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Auto-Saves to Your Device</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Everything you enter saves automatically to your phone or computer. No account needed. No cloud. Your data stays completely private on your device.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">🖨️</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Print Any Tab</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Tap the <strong>🖨 Print</strong> button in the header to print whichever tab you are currently viewing. Great for bringing your Top 3 Questions or lab results to an appointment.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">❓</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Top 3 Questions</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Before every appointment, go to <strong>Top 3 Questions</strong>, type your questions, then tap <strong>🖨 Print</strong> to bring a copy. Your provider can write the plan right on the page.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">📆</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Upcoming Appointments</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">The <strong>Upcoming Appointments</strong> tab automatically pulls all appointment dates from your PCP Visits, Specialist, and Referral tabs into one view — no double entry needed.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">🔗</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Referral Follow-Up Reminder</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">After logging a referral, the tracker reminds you to follow up within 1 week if you haven't heard back. Don't assume the referral was received — advocate for yourself.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">🔬</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Lab Results Trending</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Log the same test name multiple times and the tracker groups them together so you can see how your values change over time — great for HbA1c, cholesterol, and blood pressure trends.</div>
+      </div>
+    </div>
+
+    <!-- ALL 16 TABS AT A GLANCE -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:1rem;margin-bottom:12px">All 16 Tabs — What Each One Does</div>
+      ${[
+        ['📱','How To Use This Tracker','You are here! Start here if this is your first time.'],
+        ['📅','PCP Visits','Log your quarterly check-ups and sick/acute visits. Edit each quarter with the ✏️ button.'],
+        ['❓','Top 3 Questions','Write your questions before each appointment. Print and bring to the visit.'],
+        ['📋','Health History','Running log of past conditions, treatments, surgeries, and providers.'],
+        ['🚨','Urgent Care','Track unscheduled urgent care and ER visits.'],
+        ['❤️','Blood Pressure','Log readings and see automatic Normal / Elevated / High classification.'],
+        ['🩸','Blood Sugar','Track fasting and post-meal blood sugar readings over time.'],
+        ['💊','Medications','Current and past medications, dosages, prescribers, and status.'],
+        ['🔗','Referrals','Log specialist referrals and track whether they have been completed.'],
+        ['👨‍⚕️','Specialist F/U','Track your specialist team, next appointment dates, and follow-up status.'],
+        ['🛡️','Preventative Screening','Log colonoscopies, mammograms, physicals, and other preventive care.'],
+        ['👁️','Vision & Hearing','Eye exam prescriptions and hearing test results.'],
+        ['📞','Contacts & Insurance','Emergency contacts, pharmacy information, and insurance card details.'],
+        ['📆','Upcoming Appointments','Auto-generated view of all scheduled appointments from your other tabs.'],
+        ['🔬','Lab Results','Log lab values and track trends over time. Grouped by test name automatically.'],
+        ['💉','Vaccines & Immunizations','Log your vaccines with CDC adult schedule reference guide.'],
+      ].map(([icon,name,desc])=>`
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:1.1rem;width:24px;flex-shrink:0">${icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;color:var(--navy);font-size:.88rem">${name}</div>
+            <div style="font-size:.8rem;color:var(--slate);line-height:1.5">${desc}</div>
+          </div>
+          <button class="btn btn-o btn-sm" onclick="sw('${name==='How To Use This Tracker'?'howto':name==='PCP Visits'?'pcp':name==='Top 3 Questions'?'questions':name==='Health History'?'history':name==='Urgent Care'?'urgent':name==='Blood Pressure'?'bp':name==='Blood Sugar'?'bs':name==='Medications'?'meds':name==='Referrals'?'referrals':name==='Specialist F/U'?'specialist':name==='Preventative Screening'?'screening':name==='Vision & Hearing'?'vision':name==='Contacts & Insurance'?'contacts':name==='Upcoming Appointments'?'upcoming':name==='Lab Results'?'labs':'vaccines'}')" style="flex-shrink:0;font-size:.72rem;padding:4px 10px">Go →</button>
+        </div>`).join('')}
+    </div>
+
+    <!-- DISCLAIMER -->
+    <div style="background:var(--amber-lt);border:1.5px solid var(--amber);border-radius:var(--radius);padding:14px 16px;font-size:.82rem;color:#7a5800;line-height:1.7">
+      <strong style="display:block;margin-bottom:4px">⚠️ Educational Tool Disclaimer</strong>
+      This tracker is for personal health organization and communication with your care team only. It does not replace the diagnosis, advice, or treatment of a licensed healthcare provider. Created by a Family Nurse Practitioner to <em>support</em> — not replace — your provider relationship. Always consult your primary care provider for all medical decisions.
+    </div>`;
 }
 
 /* ══ PCP ══ */
