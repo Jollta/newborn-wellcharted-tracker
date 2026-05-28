@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Health Confidence Tracker · WellCharted.health</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy:#2d4a8a; --navy-dk:#1e3366; --navy-lt:#e8edf8;
+    --amber:#f0a500; --amber-lt:#fff8e6;
+    --rose:#e05c5c; --rose-lt:#fdf0f0;
+    --green:#3a9e7e; --green-lt:#edf8f4;
+    --slate:#6b7a99; --bg:#f4f5f8; --card:#ffffff;
+    --text:#1e2a3b; --muted:#9ba8c0; --border:#dde2ef;
+    --radius:12px; --shadow:0 2px 12px rgba(45,74,138,.08);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
+
+  /* DISCLAIMER */
+  .disc{background:linear-gradient(90deg,#fff8e6,#fff3d6);border-bottom:2px solid var(--amber);padding:10px 32px;display:flex;align-items:flex-start;gap:12px;font-size:.8rem;color:#7a5800}
+  .disc strong{display:block;font-size:.83rem;margin-bottom:2px}
+  .disc-x{margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.1rem;color:#b37800;flex-shrink:0;padding:0 4px}
+
+  /* HEADER */
+  header{background:linear-gradient(135deg,var(--navy-dk),var(--navy));color:#fff;padding:18px 36px 0;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(30,51,102,.25)}
+  .hdr-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .brand h1{font-family:'Lora',serif;font-size:1.65rem;font-weight:600;letter-spacing:-.3px}
+  .brand p{font-size:.76rem;opacity:.6;letter-spacing:.5px;text-transform:uppercase}
+  .print-btn{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 14px;font-size:.75rem;color:#fff;opacity:.85;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
+  .print-btn:hover{background:rgba(255,255,255,.22)}
+
+  /* NAV */
+  .nav-wrap{position:relative;display:flex;align-items:flex-end;gap:0}
+  .nav-scroll-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;flex-shrink:0;cursor:pointer;font-size:1rem;align-self:stretch;display:flex;align-items:center;justify-content:center;transition:background .2s}
+  .nav-scroll-btn:hover{background:rgba(255,255,255,.3)}
+  nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;flex-wrap:wrap;padding-top:4px}
+  nav::-webkit-scrollbar{display:none}
+  .tab{display:flex;align-items:center;gap:5px;padding:8px 13px;border-radius:8px 8px 0 0;background:transparent;border:none;color:rgba(255,255,255,.6);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s}
+  .tab:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9)}
+  .tab.active{background:var(--bg);color:var(--navy);font-weight:600}
+
+  /* MAIN */
+  main{max-width:1220px;margin:0 auto;padding:30px 22px 70px}
+  .panel{display:none;animation:fadeIn .22s ease}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+  .sec-title{font-family:'Lora',serif;font-size:1.32rem;font-weight:600;color:var(--navy);margin-bottom:5px;display:flex;align-items:center;gap:10px}
+  .sec-sub{color:var(--slate);font-size:.87rem;margin-bottom:22px}
+
+  /* CARD */
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:22px;overflow:hidden}
+  .card-head{padding:16px 20px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .card-head h3{font-family:'Lora',serif;font-size:.98rem;font-weight:600;color:var(--navy)}
+  .card-hint{font-size:.74rem;color:var(--muted)}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse}
+  th{background:var(--navy-lt);color:var(--navy);font-size:.71rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;padding:10px 15px;text-align:left}
+  td{padding:12px 15px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:.87rem}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--navy-lt);transition:background .15s}
+  .q-label{font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.93rem}
+
+  /* BADGES */
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;letter-spacing:.3px}
+  .b-amber{background:var(--amber-lt);color:#b37800}
+  .b-green{background:var(--green-lt);color:#2a7a5e}
+  .b-rose{background:var(--rose-lt);color:#c04040}
+  .b-slate{background:var(--navy-lt);color:var(--slate)}
+  .b-purple{background:#f0ecff;color:#5c3dac}
+
+  /* STATUS SELECT */
+  .ssel{border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:.77rem;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);cursor:pointer}
+
+  /* EDITABLE */
+  .editable{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.87rem;color:var(--text);width:100%;outline:none;border-bottom:1px dashed transparent;transition:border-color .2s}
+  .editable:hover{border-bottom-color:var(--muted)}
+  .editable:focus{border-bottom-color:var(--navy);background:var(--navy-lt);border-radius:4px;padding:2px 6px}
+  .mu{color:var(--muted);font-style:italic}
+
+  /* BUTTONS */
+  .add-row{display:flex;gap:14px;padding:16px 20px;background:var(--bg);border-top:1px solid var(--border);flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;border:none;transition:all .18s;text-decoration:none}
+  .btn-p{background:var(--navy);color:#fff}
+  .btn-p:hover{background:var(--navy-dk);box-shadow:0 4px 12px rgba(45,74,138,.3);transform:translateY(-1px)}
+  .btn-o{background:var(--card);color:var(--navy);border:1.5px solid var(--navy)}
+  .btn-o:hover{background:var(--navy-lt)}
+  .btn-g{background:var(--green);color:#fff}
+  .btn-g:hover{filter:brightness(1.08)}
+  .btn-sm{padding:4px 11px;font-size:.74rem}
+  .del-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;border-radius:6px;transition:color .18s,background .18s}
+  .del-btn:hover{color:var(--rose);background:var(--rose-lt)}
+
+  /* GRID */
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:740px){.g2{grid-template-columns:1fr}}
+
+  /* READINGS */
+  .rc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px 20px;box-shadow:var(--shadow);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .rc-big{font-family:'Lora',serif;font-size:1.55rem;font-weight:600;color:var(--navy)}
+  .rc-lbl{font-size:.74rem;color:var(--slate);text-transform:uppercase;letter-spacing:.5px}
+  .rc-meta{font-size:.79rem;color:var(--muted)}
+
+  /* QUESTION CARDS */
+  .qcard{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:18px 22px;margin-bottom:14px}
+  .qtop{display:flex;align-items:flex-start;gap:14px}
+  .qnum{background:var(--navy);color:#fff;font-family:'Lora',serif;font-size:1rem;font-weight:600;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+  .qbody{flex:1}
+  .qinput{width:100%;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.97rem;color:var(--text);resize:none;outline:none;min-height:40px;border-bottom:1.5px solid var(--border);padding-bottom:5px}
+  .qinput:focus{border-bottom-color:var(--navy)}
+  .qmeta{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .qplan{flex:1;min-width:200px;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--text);background:var(--bg);outline:none}
+  .qplan:focus{border-color:var(--navy)}
+
+  /* PATIENT BAR */
+  .pt-bar{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:13px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);flex-wrap:wrap}
+  .pt-bar label{font-size:.76rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+  .pt-bar input{border:none;background:transparent;font-family:'Lora',serif;font-size:1rem;color:var(--navy);outline:none;border-bottom:1.5px solid var(--border);padding-bottom:2px;min-width:180px}
+  .pt-bar input:focus{border-bottom-color:var(--navy)}
+  .pt-bar .appt-in{width:150px;min-width:unset;font-family:'DM Sans',sans-serif;font-size:.88rem}
+
+  /* URGENT */
+  .uc-ban{background:linear-gradient(90deg,var(--rose),#c94040);color:#fff;border-radius:var(--radius);padding:16px 22px;margin-bottom:18px;display:flex;align-items:center;gap:14px}
+
+  /* REF CARDS */
+  .rfc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:16px 20px;margin-bottom:12px;display:flex;align-items:flex-start;gap:14px}
+  .rfi{font-size:1.35rem;margin-top:2px}
+  .spc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:16px 20px;margin-bottom:12px}
+
+  /* REFERRAL ALERT */
+  .ref-alert{background:var(--amber-lt);border:1.5px solid var(--amber);border-radius:var(--radius);padding:14px 18px;margin-top:18px;font-size:.83rem;color:#7a5800;line-height:1.6}
+  .ref-alert strong{display:block;margin-bottom:5px;font-size:.87rem}
+
+  /* SCREENING */
+  .scr-ref{background:var(--navy-lt);border-radius:var(--radius);padding:16px 20px;margin-bottom:18px}
+  .scr-ref h4{font-family:'Lora',serif;color:var(--navy);font-size:.93rem;margin-bottom:10px}
+  .scr-list{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;list-style:none}
+  .scr-list li{font-size:.8rem;color:var(--slate);padding-left:16px;position:relative}
+  .scr-list li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+  @media(max-width:600px){.scr-list{grid-template-columns:1fr}}
+
+  /* INLINE FORM */
+  .if-wrap .form-group{margin-bottom:13px}
+  .if-wrap label{display:block;font-size:.76rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .if-wrap input,.if-wrap select,.if-wrap textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text);background:var(--bg);outline:none}
+  .if-wrap input:focus,.if-wrap select:focus,.if-wrap textarea:focus{border-color:var(--navy);background:#fff}
+  .if-wrap textarea{resize:vertical;min-height:66px}
+
+  /* MODAL */
+  .mo{display:none;position:fixed;inset:0;background:rgba(30,42,59,.45);z-index:200;align-items:center;justify-content:center}
+  .mo.open{display:flex}
+  .mi{background:var(--card);border-radius:16px;padding:26px 28px;width:min(520px,94vw);box-shadow:0 12px 40px rgba(30,42,59,.25);animation:fadeIn .2s ease;max-height:90vh;overflow-y:auto}
+  .mi h3{font-family:'Lora',serif;font-size:1.12rem;color:var(--navy);margin-bottom:4px}
+  .mi .msub{font-size:.79rem;color:var(--muted);margin-bottom:16px}
+  .mi .form-group{margin-bottom:13px}
+  .mi .form-group label{display:block;font-size:.76rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .mi .form-group input,.mi .form-group select,.mi .form-group textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text);background:var(--bg);outline:none}
+  .mi .form-group input:focus,.mi .form-group select:focus,.mi .form-group textarea:focus{border-color:var(--navy);background:#fff}
+  .mi .form-group textarea{resize:vertical;min-height:66px}
+  .mact{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+  /* PRINT */
+  @media print{
+    header,.disc,.add-row,.del-btn,.print-btn,.btn-p,.btn-o,.btn-g,.btn-sm,.tab,
+    .qmeta-btns,.no-print,nav,.nav-wrap,.nav-scroll-btn{display:none!important}
+    .panel{display:none!important}
+    .panel.active{display:block!important}
+    .card,.rc,.qcard,.rfc{box-shadow:none!important;border:1px solid #ccc!important}
+    .pt-bar{border:1.5px solid #999!important;margin-bottom:14px}
+    .qcard{page-break-inside:avoid;margin-bottom:14px}
+    .qmeta{flex-wrap:wrap!important}
+    .qplan{width:100%!important;border:1px solid #bbb!important;background:#fff!important}
+    .g2{display:grid!important;grid-template-columns:1fr 1fr!important}
+    .scr-ref{margin-bottom:14px;page-break-inside:avoid}
+    .scr-list{grid-template-columns:1fr 1fr!important}
+    main{padding:10px!important}
+  }
+</style>
+</head>
+<body>
+
+<!-- DISCLAIMER -->
+<div class="disc" id="disc">
+  <span style="font-size:1.1rem;flex-shrink:0">⚠️</span>
+  <div>
+    <strong>Educational &amp; Tracking Tool Only — Not a Substitute for Medical Advice</strong>
+    This tracker is provided for personal health organization and to help you communicate with your care team. It does not replace the diagnosis, advice, or treatment of a licensed healthcare provider. Created by a Family Nurse Practitioner to <em>support</em> — not replace — your primary care provider relationship. Always discuss your results and concerns with your provider.
+  </div>
+  <button class="disc-x" onclick="document.getElementById('disc').style.display='none'">✕</button>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-top">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <div class="brand">
+      <h1>Health Confidence Tracker</h1>
+      <p>WellCharted.health · For tracking &amp; communication purposes only</p>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+  </div>
+  <div class="nav-wrap">
+    <button class="nav-scroll-btn" id="nav-left" onclick="scrollNav(-120)" title="Scroll left">‹</button>
+    <nav id="nav"></nav>
+    <button class="nav-scroll-btn" id="nav-right" onclick="scrollNav(120)" title="Scroll right">›</button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<!-- MODAL -->
+<div class="mo" id="modal"><div class="mi" id="modal-inner"></div></div>
+
+<script>
+const TABS=[
+  {id:'pcp',icon:'📅',label:'PCP Visits'},
+  {id:'questions',icon:'❓',label:'Top 3 Questions'},
+  {id:'history',icon:'📋',label:'Health History'},
+  {id:'urgent',icon:'🚨',label:'Urgent Care'},
+  {id:'bp',icon:'❤️',label:'Blood Pressure'},
+  {id:'bs',icon:'🩸',label:'Blood Sugar'},
+  {id:'meds',icon:'💊',label:'Medications'},
+  {id:'referrals',icon:'🔗',label:'Referrals'},
+  {id:'specialist',icon:'👨‍⚕️',label:'Specialist F/U'},
+  {id:'screening',icon:'🛡️',label:'Preventative Screening'},
+  {id:'vision',icon:'👁️',label:'Vision & Hearing'},
+  {id:'contacts',icon:'📞',label:'Contacts & Insurance'},
+  {id:'upcoming',icon:'📆',label:'Upcoming Appointments'},
+  {id:'labs',icon:'🔬',label:'Lab Results'},
+  {id:'vaccines',icon:'💉',label:'Vaccines & Immunizations'},
+];
+
+function load(k,d){try{const v=localStorage.getItem('hct_'+k);return v?JSON.parse(v):d}catch{return d}}
+function save(k,v){localStorage.setItem('hct_'+k,JSON.stringify(v))}
+
+const S={
+  pcp_routine:load('pcp_routine',[
+    {id:1,quarter:'Q1 2026',months:'Jan – Mar',date:'',notes:'',pcp:'',status:'Scheduled'},
+    {id:2,quarter:'Q2 2026',months:'Apr – Jun',date:'',notes:'',pcp:'',status:'Scheduled'},
+    {id:3,quarter:'Q3 2026',months:'Jul – Sep',date:'',notes:'',pcp:'',status:'Scheduled'},
+    {id:4,quarter:'Q4 2026',months:'Oct – Dec',date:'',notes:'',pcp:'',status:'Scheduled'},
+  ]),
+  pcp_sick:load('pcp_sick',[{id:1,type:'Acute Visit',date:'2026-04-08',notes:'flu',status:'Pending'}]),
+  questions:load('questions',[{text:'',plan:'',status:'open'},{text:'',plan:'',status:'open'},{text:'',plan:'',status:'open'}]),
+  pt_name:load('pt_name',''),
+  appt_date:load('appt_date',''),
+  history:load('history',[]),
+  urgent:load('urgent',[]),
+  bp:load('bp',[]),
+  bs:load('bs',[]),
+  meds:load('meds',[]),
+  referrals:load('referrals',[]),
+  specialist:load('specialist',[]),
+  screening:load('screening',[]),
+  vision:load('vision',[]),
+  hearing:load('hearing',[]),
+  emcontacts:load('emcontacts',[]),
+  pharmacy:load('pharmacy',[]),
+  insurance:load('insurance',[]),
+  labs:load('labs',[]),
+  vaccines:load('vaccines',[]),
+};
+
+let activeTab='pcp', vhForm='vision', ciForm='contact';
+
+function uid(){return Date.now()+Math.random().toString(36).slice(2,6)}
+function gv(id){const e=document.getElementById(id);return e?e.value.trim():''}
+function gtv(id){const e=document.getElementById(id);return e?e.value:''}
+
+function sbadge(s){
+  const m={'Completed':'b-green','Complete':'b-green','Reviewed with PCP':'b-green',
+    'Pending':'b-amber','Scheduled':'b-amber','Open':'b-amber',
+    'Cancelled':'b-rose','Missed':'b-rose','No entry':'b-slate','In Progress':'b-slate'};
+  return `<span class="badge ${m[s]||'b-slate'}">${s||'—'}</span>`;
+}
+function ssel(val,fn,opts){
+  const o=opts||['Scheduled','Completed','Pending','Cancelled','Missed','In Progress','No entry'];
+  return `<select class="ssel" onchange="(${fn})(this.value)">${o.map(x=>`<option${x===val?' selected':''}>${x}</option>`).join('')}</select>`;
+}
+
+function buildNav(){
+  document.getElementById('nav').innerHTML=TABS.map(t=>
+    `<button class="tab${t.id===activeTab?' active':''}" onclick="sw('${t.id}')">${t.icon} ${t.label}</button>`
+  ).join('');
+  setTimeout(()=>{
+    const a=document.querySelector('.tab.active');
+    if(a) a.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  },50);
+}
+function scrollNav(dx){document.getElementById('nav').scrollBy({left:dx,behavior:'smooth'});}
+function sw(id){activeTab=id;buildNav();render()}
+function render(){
+  const rs={pcp:rPCP,questions:rQ,history:rHist,urgent:rUC,bp:rBP,bs:rBS,meds:rMeds,
+    referrals:rRef,specialist:rSpec,screening:rScr,vision:rVis,contacts:rCon,
+    upcoming:rUpcoming,labs:rLabs,vaccines:rVax};
+  document.getElementById('main').innerHTML=`<div class="panel active">${(rs[activeTab]||rPCP)()}</div>`;
+}
+
+/* ══ PCP ══ */
+function rPCP(){
+  const rows=S.pcp_routine.map((r,i)=>`<tr>
+    <td><span class="q-label">${r.quarter}</span></td>
+    <td>${r.months}</td>
+    <td>${r.date?`<strong>${r.date}</strong>`:`<span class="mu">—</span>`}</td>
+    <td style="max-width:180px">${r.notes||`<span class="mu">—</span>`}</td>
+    <td>${r.pcp||`<span class="mu">No entry</span>`}</td>
+    <td><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      ${ssel(r.status,`function(v){S.pcp_routine[${i}].status=v;save('pcp_routine',S.pcp_routine)}`)}
+      <button class="btn btn-o btn-sm" onclick="openRoutineModal(${i})">✏️ Edit</button>
+      ${(r.date||r.notes||r.pcp)?`<button class="del-btn" onclick="clearR(${i})" title="Clear">🗑</button>`:''}
+    </div></td></tr>`).join('');
+
+  const sick=S.pcp_sick.map((r,i)=>`<tr>
+    <td><span class="badge b-amber">${r.type}</span></td>
+    <td>${r.date}</td><td>${r.notes||'—'}</td>
+    <td>${ssel(r.status,`function(v){S.pcp_sick[${i}].status=v;save('pcp_sick',S.pcp_sick)}`)}</td>
+    <td><button class="del-btn" onclick="delSick(${i})">🗑</button></td></tr>`).join('');
+
+  return `<div class="sec-title">📅 PCP Visits</div>
+    <p class="sec-sub">Track quarterly check-ups and sick/acute visits in one place.</p>
+    <div class="card">
+      <div class="card-head"><h3>Quarterly Routine Follow-Ups</h3><span class="card-hint">Click ✏️ Edit to open the entry window for any quarter</span></div>
+      <table><thead><tr><th>Quarter</th><th>Months</th><th>Appt Date</th><th>Notes</th><th>PCP</th><th>Status / Actions</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Sick / Acute Visits</h3></div>
+      <table><thead><tr><th>Type</th><th>Date</th><th>Reason / Notes</th><th>Status</th><th></th></tr></thead>
+      <tbody>${sick||`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:22px">No sick visits logged yet.</td></tr>`}</tbody></table>
+      <div class="add-row"><button class="btn btn-p" onclick="openM('sick')">+ Add Sick/Acute Visit</button></div>
+    </div>`;
+}
+
+window.clearR=(i)=>{S.pcp_routine[i]={...S.pcp_routine[i],date:'',notes:'',pcp:'',status:'Scheduled'};save('pcp_routine',S.pcp_routine);render()};
+window.delSick=(i)=>{S.pcp_sick.splice(i,1);save('pcp_sick',S.pcp_sick);render()};
+
+window.openRoutineModal=function(i){
+  const r=S.pcp_routine[i];
+  document.getElementById('modal-inner').innerHTML=`
+    <h3>📅 ${r.quarter} — Edit Visit</h3><p class="msub">${r.months}</p>
+    <div class="form-group"><label>Appointment Date</label><input id="rq_d" type="date" value="${r.date||''}" /></div>
+    <div class="form-group"><label>PCP / Provider Name</label><input id="rq_p" value="${r.pcp||''}" placeholder="Dr. Smith" /></div>
+    <div class="form-group"><label>Notes / Topics</label><textarea id="rq_n" placeholder="Topics discussed, reminders, follow-ups…">${r.notes||''}</textarea></div>
+    <div class="form-group"><label>Status</label><select id="rq_s">
+      ${['Scheduled','Completed','Pending','Cancelled','Missed','No entry'].map(o=>`<option${o===r.status?' selected':''}>${o}</option>`).join('')}
+    </select></div>
+    <div class="mact"><button class="btn btn-o" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="saveRM(${i})">Save Visit</button></div>`;
+  document.getElementById('modal').classList.add('open');
+};
+window.saveRM=function(i){
+  S.pcp_routine[i].date=gv('rq_d');S.pcp_routine[i].pcp=gv('rq_p');
+  S.pcp_routine[i].notes=gtv('rq_n').trim();S.pcp_routine[i].status=document.getElementById('rq_s').value;
+  save('pcp_routine',S.pcp_routine);closeM();render();
+};
+
+/* ══ QUESTIONS ══ */
+function rQ(){
+  // migrate old string format
+  if(typeof S.questions[0]==='string') S.questions=S.questions.map(t=>({text:t,plan:'',status:'open'}));
+
+  const cards=S.questions.map((q,i)=>`
+    <div class="qcard">
+      <div class="qtop">
+        <div class="qnum">${i+1}</div>
+        <div class="qbody">
+          <textarea class="qinput" placeholder="Type your question for your next appointment…" oninput="S.questions[${i}].text=this.value">${q.text||''}</textarea>
+          <div class="qmeta">
+            <div style="width:100%;margin-bottom:6px">
+              <div style="font-size:.74rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Provider's Plan / Response:</div>
+              <input class="qplan" style="width:100%" placeholder="What did your provider say? What is the plan?" value="${(q.plan||'').replace(/"/g,'&quot;')}" oninput="S.questions[${i}].plan=this.value" />
+            </div>
+            <div class="qmeta-btns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              ${q.status==='reviewed'
+                ?`<span class="badge b-green" style="padding:5px 12px">✓ Reviewed with PCP</span>
+                  <button class="btn btn-o btn-sm" type="button" onclick="setQS(${i},'open')">↩ Re-open</button>`
+                :`<button class="btn btn-g btn-sm" type="button" onclick="setQS(${i},'reviewed')">✓ Mark Reviewed with PCP</button>`}
+              <button class="btn btn-sm" type="button" style="background:var(--rose-lt);color:var(--rose);border:1px solid var(--rose)" onclick="clearQ(${i})">🗑 Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  return `<div class="sec-title">❓ Top 3 Questions</div>
+    <p class="sec-sub">Prepare your most important questions before each appointment. Print this page and bring it with you — your provider can fill in the plan, and you can mark each one reviewed.</p>
+
+    <div class="pt-bar">
+      <label>Patient Name:</label>
+      <input id="pt_n" value="${(S.pt_name||'').replace(/"/g,'&quot;')}" placeholder="Your Full Name" oninput="S.pt_name=this.value" />
+      <label>Appointment Date:</label>
+      <input class="appt-in" id="pt_a" type="date" value="${S.appt_date||''}" oninput="S.appt_date=this.value" />
+    </div>
+
+    ${cards}
+
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px" class="no-print">
+      <button class="btn btn-p" onclick="saveQs()">💾 Save Questions</button>
+      <button class="btn btn-o" onclick="saveQs();setTimeout(()=>window.print(),150)">🖨 Print for Appointment</button>
+      <span style="font-size:.77rem;color:var(--muted)">Saved to this browser. Print to bring a copy to your appointment.</span>
+    </div>`;
+}
+window.setQS=(i,s)=>{S.questions[i].status=s;save('questions',S.questions);render()};
+window.clearQ=(i)=>{S.questions[i]={text:'',plan:'',status:'open'};save('questions',S.questions);render()};
+window.saveQs=()=>{save('questions',S.questions);save('pt_name',S.pt_name);save('appt_date',S.appt_date);toast('✅ Questions saved! Click Print to bring a copy to your appointment.')};
+
+/* ══ HISTORY ══ */
+function rHist(){
+  const rows=S.history.map((h,i)=>`<tr><td>${h.year}</td><td>${h.condition}</td><td>${h.treatment}</td><td>${h.provider}</td><td><button class="del-btn" onclick="delH(${i})">🗑</button></td></tr>`).join('')||`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:26px">No history entries yet.</td></tr>`;
+  return `<div class="sec-title">📋 Health History</div><p class="sec-sub">A running log of conditions, treatments, and providers.</p>
+    <div class="card"><table><thead><tr><th>Year</th><th>Condition / Event</th><th>Treatment</th><th>Provider</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="add-row"><button class="btn btn-p" onclick="openM('history')">+ Add Entry</button></div></div>`;
+}
+window.delH=(i)=>{S.history.splice(i,1);save('history',S.history);render()};
+
+/* ══ URGENT CARE ══ */
+function rUC(){
+  const rows=S.urgent.map((u,i)=>`<tr><td>${u.date}</td><td>${u.facility}</td><td>${u.reason}</td><td>${u.outcome}</td>
+    <td>${ssel(u.status,`function(v){S.urgent[${i}].status=v;save('urgent',S.urgent)}`)}</td>
+    <td><button class="del-btn" onclick="delUC(${i})">🗑</button></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:26px">No visits logged.</td></tr>`;
+  return `<div class="uc-ban"><span style="font-size:1.5rem">🚨</span><div><h3 style="font-family:Lora,serif">Urgent Care Visits</h3><p style="font-size:.83rem;opacity:.85">Track unscheduled visits and ER trips.</p></div></div>
+    <div class="card"><table><thead><tr><th>Date</th><th>Facility</th><th>Reason</th><th>Outcome</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="add-row"><button class="btn btn-p" onclick="openM('urgent')">+ Log Visit</button></div></div>`;
+}
+window.delUC=(i)=>{S.urgent.splice(i,1);save('urgent',S.urgent);render()};
+
+/* ══ BLOOD PRESSURE ══ */
+function rBP(){
+  const cards=S.bp.slice().reverse().map((r,i)=>{
+    const ri=S.bp.length-1-i;
+    const[sys,dia]=r.reading.split('/').map(Number);
+    let f='b-green',l='Normal';
+    if(sys>=130||dia>=80){f='b-amber';l='Elevated';}
+    if(sys>=140||dia>=90){f='b-rose';l='High';}
+    return `<div class="rc"><div><div class="rc-lbl">Blood Pressure</div>
+      <div class="rc-big">${r.reading} <small style="font-size:.88rem">mmHg</small></div>
+      <div class="rc-meta">${r.date}${r.time?' · '+r.time:''}${r.arm?' · '+r.arm:''}</div></div>
+      <div style="text-align:right"><span class="badge ${f}">${l}</span>
+      <div style="margin-top:7px"><button class="del-btn" onclick="delBP(${ri})">🗑</button></div></div></div>`;
+  }).join('')||`<p style="color:var(--muted);padding:18px">No readings yet.</p>`;
+  return `<div class="sec-title">❤️ Blood Pressure Log</div><p class="sec-sub">Normal: below 120/80 mmHg.</p>
+    <div class="g2"><div>${cards}</div>
+    <div class="card" style="padding:20px">
+      <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:14px">Add Reading</h3>
+      <div class="if-wrap">
+        <div class="form-group"><label>Reading (Sys/Dia)</label><input id="bp_r" placeholder="120/80" /></div>
+        <div class="form-group"><label>Date</label><input id="bp_d" type="date" /></div>
+        <div class="form-group"><label>Time</label><input id="bp_t" type="time" /></div>
+        <div class="form-group"><label>Arm</label><select id="bp_a"><option>Left</option><option>Right</option></select></div>
+        <div class="form-group"><label>Notes</label><input id="bp_n" placeholder="Optional…" /></div>
+        <button class="btn btn-p" onclick="addBP()">Add Reading</button>
+      </div>
+    </div></div>`;
+}
+window.addBP=()=>{const r=gv('bp_r'),d=gv('bp_d');if(!r||!d){alert('Please enter a reading and date.');return;}S.bp.push({reading:r,date:d,time:gv('bp_t'),arm:gv('bp_a'),notes:gv('bp_n')});save('bp',S.bp);render()};
+window.delBP=(i)=>{S.bp.splice(i,1);save('bp',S.bp);render()};
+
+/* ══ BLOOD SUGAR (no unit field) ══ */
+function rBS(){
+  const cards=S.bs.slice().reverse().map((r,i)=>{
+    const ri=S.bs.length-1-i;
+    const val=parseFloat(r.value);
+    let f='b-green',l='Normal';
+    if(val>125){f='b-rose';l='High';}else if(val>99){f='b-amber';l='Pre-High';}
+    return `<div class="rc"><div><div class="rc-lbl">Blood Sugar · ${r.context||'—'}</div>
+      <div class="rc-big">${r.value}</div>
+      <div class="rc-meta">${r.date}${r.time?' · '+r.time:''}</div></div>
+      <div style="text-align:right"><span class="badge ${f}">${l}</span>
+      <div style="margin-top:7px"><button class="del-btn" onclick="delBS(${ri})">🗑</button></div></div></div>`;
+  }).join('')||`<p style="color:var(--muted);padding:18px">No readings yet.</p>`;
+  return `<div class="sec-title">🩸 Blood Sugar Log</div><p class="sec-sub">Normal fasting range: 70–99 mg/dL.</p>
+    <div class="g2"><div>${cards}</div>
+    <div class="card" style="padding:20px">
+      <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:14px">Add Reading</h3>
+      <div class="if-wrap">
+        <div class="form-group"><label>Result</label><input id="bs_v" placeholder="e.g., 95" /></div>
+        <div class="form-group"><label>Context</label><select id="bs_c"><option>Fasting</option><option>Post-meal</option><option>Random</option><option>Bedtime</option></select></div>
+        <div class="form-group"><label>Date</label><input id="bs_d" type="date" /></div>
+        <div class="form-group"><label>Time</label><input id="bs_t" type="time" /></div>
+        <div class="form-group"><label>Notes</label><input id="bs_n" placeholder="Optional…" /></div>
+        <button class="btn btn-p" onclick="addBS()">Add Reading</button>
+      </div>
+    </div></div>`;
+}
+window.addBS=()=>{const v=gv('bs_v'),d=gv('bs_d');if(!v||!d){alert('Please enter a result and date.');return;}S.bs.push({value:v,context:gv('bs_c'),date:d,time:gv('bs_t'),notes:gv('bs_n')});save('bs',S.bs);render()};
+window.delBS=(i)=>{S.bs.splice(i,1);save('bs',S.bs);render()};
+
+/* ══ MEDICATIONS ══ */
+function rMeds(){
+  const rows=S.meds.map((m,i)=>`<tr><td><strong>${m.name}</strong></td><td>${m.dose}</td><td>${m.freq}</td><td>${m.prescriber}</td><td>${m.start}</td>
+    <td>${ssel(m.status,`function(v){S.meds[${i}].status=v;save('meds',S.meds)}`)}</td>
+    <td><input class="editable" style="width:110px" value="${(m.notes||'').replace(/"/g,'&quot;')}" placeholder="—" onchange="S.meds[${i}].notes=this.value;save('meds',S.meds)" /></td>
+    <td><button class="del-btn" onclick="delMed(${i})">🗑</button></td></tr>`).join('')||`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:26px">No medications logged.</td></tr>`;
+  return `<div class="sec-title">💊 Medications</div><p class="sec-sub">Current and past medications, dosages, and prescribers.</p>
+    <div class="card"><table><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Prescriber</th><th>Start</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="add-row"><button class="btn btn-p" onclick="openM('med')">+ Add Medication</button></div></div>`;
+}
+window.delMed=(i)=>{S.meds.splice(i,1);save('meds',S.meds);render()};
+
+/* ══ REFERRALS ══ */
+function rRef(){
+  const cards=S.referrals.map((r,i)=>`
+    <div class="rfc"><div class="rfi">🔗</div>
+      <div style="flex:1">
+        <div><strong>${r.specialist}</strong>${r.specialistName?` — <span style="color:var(--navy);font-weight:500">${r.specialistName}</span>`:''}</div>
+        <div style="font-size:.81rem;color:var(--slate)">Facility: ${r.facility||'—'}</div>
+        <div style="font-size:.81rem;color:var(--muted)">Referred by ${r.referredBy||'—'} · ${r.date||'—'}</div>
+        <div style="margin-top:6px">${sbadge(r.status)}</div>
+      </div>
+      <button class="del-btn" onclick="delRef(${i})">🗑</button>
+    </div>`).join('')||`<p style="color:var(--muted);padding:16px 0">No referrals logged yet.</p>`;
+  return `<div class="sec-title">🔗 Referrals</div><p class="sec-sub">Track specialist referrals and their status.</p>
+    ${cards}
+    <button class="btn btn-p" onclick="openM('referral')">+ Add Referral</button>
+    <div class="ref-alert">
+      <strong>⚠️ Important: Follow Up on Your Referral</strong>
+      If you have <strong>not heard from your referral source within 1 week</strong>, you should take action:
+      <ul style="margin:7px 0 0 18px;line-height:1.9">
+        <li>Call your <strong>primary care provider's office</strong> and confirm the referral was sent and received, <strong>OR</strong></li>
+        <li>If you have the specialist's phone number, <strong>call that facility directly</strong> and ask about the status of your referral.</li>
+      </ul>
+      <div style="margin-top:7px;font-size:.79rem">Do not assume the referral was received. Advocating for yourself is an important part of managing your health.</div>
+    </div>`;
+}
+window.delRef=(i)=>{S.referrals.splice(i,1);save('referrals',S.referrals);render()};
+
+/* ══ SPECIALIST ══ */
+function rSpec(){
+  const cards=S.specialist.map((s,i)=>`
+    <div class="spc"><div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div style="font-family:Lora,serif;font-weight:600;color:var(--navy)">${s.name}</div>
+        <div style="font-size:.81rem;color:var(--slate)">${s.specialty} · ${s.facility}</div>
+        <div style="font-size:.79rem;color:var(--muted);margin-top:3px">Next appt: ${s.nextDate||'—'}</div>
+        ${s.notes?`<div style="font-size:.84rem;margin-top:7px">${s.notes}</div>`:''}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">${sbadge(s.status)}<button class="del-btn" onclick="delSpec(${i})">🗑</button></div>
+    </div></div>`).join('')||`<p style="color:var(--muted);padding:16px 0">No specialists logged.</p>`;
+  return `<div class="sec-title">👨‍⚕️ Specialist Follow-Ups</div><p class="sec-sub">Track your specialist team and upcoming appointments.</p>
+    ${cards}<button class="btn btn-p" onclick="openM('specialist')">+ Add Specialist</button>`;
+}
+window.delSpec=(i)=>{S.specialist.splice(i,1);save('specialist',S.specialist);render()};
+
+/* ══ PREVENTATIVE SCREENING ══ */
+function rScr(){
+  const cards=S.screening.map((s,i)=>`
+    <div class="rfc"><div class="rfi">🛡️</div>
+      <div style="flex:1">
+        <div><strong>${s.type}</strong>${s.facility?` · <span style="color:var(--slate);font-size:.84rem">${s.facility}</span>`:''}</div>
+        <div style="font-size:.81rem;color:var(--slate)">Date performed: ${s.lastDone||'—'}</div>
+        ${s.notes?`<div style="font-size:.81rem;color:var(--muted);margin-top:2px">${s.notes}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="delScr(${i})">🗑</button>
+    </div>`).join('')||`<p style="color:var(--muted);font-size:.87rem;padding:14px 0">No screenings recorded yet.</p>`;
+
+  return `<div class="sec-title">🛡️ Preventative Screening</div>
+    <p class="sec-sub">Track colonoscopies, mammograms, physicals, and other preventive care.</p>
+
+    <div class="g2" style="margin-bottom:20px">
+      <div class="scr-ref">
+        <h4>📋 Commonly Recommended — Female</h4>
+        <ul class="scr-list">
+          <li>Annual well-woman exam</li><li>Mammogram (annually 40+)</li>
+          <li>Pap smear / HPV test (every 3–5 yrs)</li><li>Colorectal screening (age 45+)</li>
+          <li>Bone density / DEXA (65+)</li><li>Cholesterol / lipid panel</li>
+          <li>Blood pressure (annually)</li><li>Diabetes screening</li>
+          <li>Skin cancer screening</li><li>STI screening (as appropriate)</li>
+          <li>Eye exam (every 1–2 yrs)</li><li>Dental cleaning (every 6 mo)</li>
+        </ul>
+      </div>
+      <div class="scr-ref">
+        <h4>📋 Commonly Recommended — Male</h4>
+        <ul class="scr-list">
+          <li>Annual physical exam</li><li>Colorectal screening (age 45+)</li>
+          <li>Prostate / PSA discussion (50+)</li><li>Cholesterol / lipid panel</li>
+          <li>Blood pressure (annually)</li><li>Diabetes screening</li>
+          <li>Abdominal aortic aneurysm (65–75 if ever smoked)</li>
+          <li>Lung cancer screening (50–80, heavy smokers)</li>
+          <li>Skin cancer screening</li><li>STI screening (as appropriate)</li>
+          <li>Eye exam (every 1–2 yrs)</li><li>Dental cleaning (every 6 mo)</li>
+        </ul>
+      </div>
+    </div>
+    <p style="font-size:.74rem;color:var(--muted);margin-bottom:18px;font-style:italic">Reference only. Discuss your personal screening schedule with your provider — recommendations vary by age, risk, and current guidelines.</p>
+
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin-bottom:12px">My Screenings Log</h3>
+    ${cards}
+
+    <div class="no-print">
+      <div class="card" style="padding:20px;margin-top:8px">
+        <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:14px">Add Screening</h3>
+        <div class="if-wrap">
+          <div class="form-group"><label>Screening Type</label><input id="sc_t" placeholder="e.g., Colonoscopy, Mammogram, Annual Physical" /></div>
+          <div class="form-group"><label>Facility / Location Performed</label><input id="sc_f" placeholder="e.g., Houston County Medical Center" /></div>
+          <div class="form-group"><label>Date Performed</label><input id="sc_d" type="date" /></div>
+          <div class="form-group"><label>Frequency / Notes (optional)</label><textarea id="sc_n" placeholder="e.g., Due in 2 years, results normal"></textarea></div>
+          <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addScr()">+ Add Screening</button>
+        </div>
+      </div>
+    </div>`;
+}
+window.addScr=()=>{const t=gv('sc_t');if(!t){alert('Please enter a screening type.');return;}S.screening.push({id:uid(),type:t,facility:gv('sc_f'),lastDone:gv('sc_d'),notes:gtv('sc_n').trim()});save('screening',S.screening);render()};
+window.delScr=(i)=>{S.screening.splice(i,1);save('screening',S.screening);render()};
+
+/* ══ VISION & HEARING ══ */
+function rVis(){
+  const vc=S.vision.map((v,i)=>`<div class="rfc" style="margin-bottom:10px"><div class="rfi">👁️</div>
+    <div style="flex:1"><div><strong>${v.provider||'Vision Exam'}</strong> <span style="color:var(--muted);font-size:.81rem">· ${v.date}</span></div>
+    ${v.notes?`<div style="font-size:.81rem;color:var(--slate);margin-top:2px">${v.notes}</div>`:''}</div>
+    <button class="del-btn" onclick="delVis(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);font-size:.87rem;padding:12px 0">No vision exams recorded yet.</p>`;
+  const hc=S.hearing.map((h,i)=>`<div class="rfc" style="margin-bottom:10px"><div class="rfi">👂</div>
+    <div style="flex:1"><div><strong>${h.provider||'Hearing Test'}</strong> <span style="color:var(--muted);font-size:.81rem">· ${h.date}</span></div>
+    ${h.notes?`<div style="font-size:.81rem;color:var(--slate);margin-top:2px">${h.notes}</div>`:''}</div>
+    <button class="del-btn" onclick="delHear(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);font-size:.87rem;padding:12px 0">No hearing tests recorded yet.</p>`;
+  const isV=vhForm==='vision';
+  const form=isV?`<div class="if-wrap">
+    <div class="form-group"><label>Date</label><input id="vh_d" type="date" /></div>
+    <div class="form-group"><label>Provider / Clinic</label><input id="vh_p" placeholder="Optometrist or Ophthalmologist" /></div>
+    <div class="form-group"><label>Prescription / Notes</label><textarea id="vh_n" placeholder="Prescription, new glasses/contacts, results…"></textarea></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addVis()">Save Vision Exam</button></div>`:`<div class="if-wrap">
+    <div class="form-group"><label>Date</label><input id="vh_d" type="date" /></div>
+    <div class="form-group"><label>Provider / Clinic</label><input id="vh_p" placeholder="Audiologist or ENT" /></div>
+    <div class="form-group"><label>Results / Notes</label><textarea id="vh_n" placeholder="Results, hearing aid recommendation…"></textarea></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addHear()">Save Hearing Test</button></div>`;
+  return `<div class="sec-title">👁️ Vision & Hearing</div><p class="sec-sub">Track eye exams, prescriptions, hearing tests, and notes.</p>
+    <div class="g2"><div>
+      <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin-bottom:10px">Vision Exams</h3>${vc}
+      <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin:18px 0 10px">Hearing Tests</h3>${hc}
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="display:flex;border-bottom:1px solid var(--border)">
+        <button onclick="vhForm='vision';render()" style="flex:1;padding:13px;border:none;background:${isV?'var(--navy-lt)':'var(--card)'};color:${isV?'var(--navy)':'var(--slate)'};font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:${isV?'600':'400'};cursor:pointer;border-right:1px solid var(--border)">+ Add Vision Exam</button>
+        <button onclick="vhForm='hearing';render()" style="flex:1;padding:13px;border:none;background:${!isV?'var(--navy-lt)':'var(--card)'};color:${!isV?'var(--navy)':'var(--slate)'};font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:${!isV?'600':'400'};cursor:pointer">+ Add Hearing Test</button>
+      </div>
+      <div style="padding:18px">${form}</div>
+    </div></div>`;
+}
+window.addVis=()=>{const d=gv('vh_d');if(!d){alert('Please enter a date.');return;}S.vision.push({id:uid(),date:d,provider:gv('vh_p'),notes:gtv('vh_n').trim()});save('vision',S.vision);render()};
+window.addHear=()=>{const d=gv('vh_d');if(!d){alert('Please enter a date.');return;}S.hearing.push({id:uid(),date:d,provider:gv('vh_p'),notes:gtv('vh_n').trim()});save('hearing',S.hearing);render()};
+window.delVis=(i)=>{S.vision.splice(i,1);save('vision',S.vision);render()};
+window.delHear=(i)=>{S.hearing.splice(i,1);save('hearing',S.hearing);render()};
+
+/* ══ CONTACTS & INSURANCE ══ */
+function rCon(){
+  const emc=S.emcontacts.map((c,i)=>`<div class="rfc"><div class="rfi">👤</div>
+    <div style="flex:1"><div><strong>${c.name}</strong></div>
+    <div style="font-size:.81rem;color:var(--slate)">${c.phone}</div>
+    ${c.rel?`<div style="font-size:.79rem;color:var(--muted)">${c.rel}</div>`:''}</div>
+    <button class="del-btn" onclick="delEM(${i})">🗑</button></div>`).join('')||`<div class="card" style="padding:18px;text-align:center;color:var(--muted)">No emergency contacts saved yet.</div>`;
+  const phc=S.pharmacy.map((p,i)=>`<div class="rfc"><div class="rfi">💊</div>
+    <div style="flex:1"><div><strong>${p.name}</strong></div>
+    <div style="font-size:.81rem;color:var(--slate)">${p.phone}</div>
+    ${p.address?`<div style="font-size:.79rem;color:var(--muted)">${p.address}</div>`:''}</div>
+    <button class="del-btn" onclick="delPh(${i})">🗑</button></div>`).join('')||`<div class="card" style="padding:18px;text-align:center;color:var(--muted)">No pharmacy information saved yet.</div>`;
+  const inc=S.insurance.map((x,i)=>`<div class="rfc"><div class="rfi">🪪</div>
+    <div style="flex:1"><div><strong>${x.carrier}</strong> <span class="badge b-slate" style="font-size:.69rem">${x.type}</span></div>
+    <div style="font-size:.81rem;color:var(--slate)">Member ID: ${x.memberId||'—'} · Group: ${x.group||'—'}</div>
+    ${x.phone?`<div style="font-size:.79rem;color:var(--muted)">Member services: ${x.phone}</div>`:''}</div>
+    <button class="del-btn" onclick="delIns(${i})">🗑</button></div>`).join('')||`<div class="card" style="padding:18px;text-align:center;color:var(--muted)">No insurance information saved yet.</div>`;
+  const t3=[['contact','+ Add Emergency Contact'],['pharmacy','+ Add Pharmacy'],['insurance','+ Add Insurance/ID']];
+  const tb=t3.map(([id,lb])=>`<button onclick="ciForm='${id}';render()" style="flex:1;padding:12px 6px;border:none;background:${ciForm===id?'var(--navy-lt)':'var(--card)'};color:${ciForm===id?'var(--navy)':'var(--slate)'};font-family:'DM Sans',sans-serif;font-size:.81rem;font-weight:${ciForm===id?'600':'400'};cursor:pointer;border-right:1px solid var(--border)">${lb}</button>`).join('');
+  let fh='';
+  if(ciForm==='contact') fh=`<div class="if-wrap"><div class="form-group"><label>Contact Name</label><input id="ci_n" placeholder="e.g., Sarah Johnson" /></div><div class="form-group"><label>Phone / Email</label><input id="ci_ph" placeholder="(555) 123-4567 or email@example.com" /></div><div class="form-group"><label>Relationship / Notes</label><input id="ci_r" placeholder="e.g., Daughter, Spouse" /></div><button class="btn btn-p" style="width:100%;justify-content:center" onclick="addEM()">Save Contact</button></div>`;
+  else if(ciForm==='pharmacy') fh=`<div class="if-wrap"><div class="form-group"><label>Pharmacy Name</label><input id="ci_n" placeholder="e.g., CVS, Walgreens" /></div><div class="form-group"><label>Phone</label><input id="ci_ph" placeholder="(555) 123-4567" /></div><div class="form-group"><label>Address / Notes</label><input id="ci_a" placeholder="123 Main St" /></div><button class="btn btn-p" style="width:100%;justify-content:center" onclick="addPh()">Save Pharmacy</button></div>`;
+  else fh=`<div class="if-wrap"><div class="form-group"><label>Insurance Carrier</label><input id="ci_c" placeholder="e.g., BlueCross, Aetna, Medicare" /></div><div class="form-group"><label>Type</label><select id="ci_ty"><option>Medical</option><option>Dental</option><option>Vision</option><option>Prescription</option><option>Medicare</option><option>Medicaid</option><option>Other</option></select></div><div class="form-group"><label>Member ID</label><input id="ci_m" placeholder="Member ID number" /></div><div class="form-group"><label>Group Number</label><input id="ci_g" placeholder="Group number" /></div><div class="form-group"><label>Member Services Phone</label><input id="ci_ph" placeholder="Number on back of card" /></div><p style="font-size:.74rem;color:var(--muted);margin-bottom:11px">⚠️ Reference info only. Do not enter full card numbers or SSNs.</p><button class="btn btn-p" style="width:100%;justify-content:center" onclick="addIns()">Save Insurance/ID</button></div>`;
+  return `<div class="sec-title">📞 Contacts & Insurance</div><p class="sec-sub">Emergency contacts, pharmacy info, and insurance cards in one place.</p>
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin-bottom:11px">Emergency Contacts</h3>${emc}
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin:18px 0 11px">Pharmacy Information</h3>${phc}
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin:18px 0 11px">Insurance & ID</h3>${inc}
+    <div class="card" style="margin-top:14px;overflow:hidden">
+      <div style="display:flex;border-bottom:1px solid var(--border)">${tb}</div>
+      <div style="padding:18px">${fh}</div>
+    </div>`;
+}
+window.addEM=()=>{const n=gv('ci_n');if(!n){alert('Please enter a name.');return;}S.emcontacts.push({id:uid(),name:n,phone:gv('ci_ph'),rel:gv('ci_r')});save('emcontacts',S.emcontacts);render()};
+window.addPh=()=>{const n=gv('ci_n');if(!n){alert('Please enter a pharmacy name.');return;}S.pharmacy.push({id:uid(),name:n,phone:gv('ci_ph'),address:gv('ci_a')});save('pharmacy',S.pharmacy);render()};
+window.addIns=()=>{const c=gv('ci_c');if(!c){alert('Please enter a carrier name.');return;}S.insurance.push({id:uid(),carrier:c,type:gv('ci_ty'),memberId:gv('ci_m'),group:gv('ci_g'),phone:gv('ci_ph')});save('insurance',S.insurance);render()};
+window.delEM=(i)=>{S.emcontacts.splice(i,1);save('emcontacts',S.emcontacts);render()};
+window.delPh=(i)=>{S.pharmacy.splice(i,1);save('pharmacy',S.pharmacy);render()};
+window.delIns=(i)=>{S.insurance.splice(i,1);save('insurance',S.insurance);render()};
+
+/* ══ MODAL CONFIGS ══ */
+const MODS={
+  sick:{title:'Add Sick / Acute Visit',fields:[
+    {id:'type',label:'Visit Type',type:'select',opts:['Acute Visit','Sick Visit','Telehealth','ER Visit']},
+    {id:'date',label:'Date',type:'date'},{id:'notes',label:'Reason / Notes',type:'text'},
+    {id:'status',label:'Status',type:'select',opts:['Pending','Completed','Cancelled']}],
+    save(d){S.pcp_sick.push({id:uid(),...d});save('pcp_sick',S.pcp_sick)}},
+  history:{title:'Add Health History Entry',fields:[
+    {id:'year',label:'Year',type:'text',placeholder:'2024'},{id:'condition',label:'Condition / Event',type:'text'},
+    {id:'treatment',label:'Treatment',type:'text'},{id:'provider',label:'Provider / Facility',type:'text'}],
+    save(d){S.history.push({id:uid(),...d});save('history',S.history)}},
+  urgent:{title:'Log Urgent Care Visit',fields:[
+    {id:'date',label:'Date',type:'date'},{id:'facility',label:'Facility Name',type:'text'},
+    {id:'reason',label:'Reason for Visit',type:'text'},{id:'outcome',label:'Outcome / Follow-up',type:'text'},
+    {id:'status',label:'Status',type:'select',opts:['Pending','Completed','In Progress']}],
+    save(d){S.urgent.push({id:uid(),...d});save('urgent',S.urgent)}},
+  med:{title:'Add Medication',fields:[
+    {id:'name',label:'Medication Name',type:'text'},{id:'dose',label:'Dosage',type:'text',placeholder:'10mg'},
+    {id:'freq',label:'Frequency',type:'text',placeholder:'Once daily'},{id:'prescriber',label:'Prescribing Doctor',type:'text'},
+    {id:'start',label:'Start Date',type:'date'},{id:'status',label:'Status',type:'select',opts:['Active','On Hold','Discontinued']},
+    {id:'notes',label:'Notes',type:'text'}],
+    save(d){S.meds.push({id:uid(),...d});save('meds',S.meds)}},
+  referral:{title:'Add Referral',fields:[
+    {id:'specialist',label:'Specialty / Type of Referral',type:'text',placeholder:'e.g., Cardiology, Orthopedics'},
+    {id:'specialistName',label:'Specialist Name (if known)',type:'text',placeholder:'e.g., Dr. Patel'},
+    {id:'facility',label:'Facility / Practice Name',type:'text'},
+    {id:'referredBy',label:'Referred By (Your PCP)',type:'text'},
+    {id:'date',label:'Referral Date',type:'date'},
+    {id:'status',label:'Status',type:'select',opts:['Pending','Scheduled','Completed','Cancelled']}],
+    save(d){S.referrals.push({id:uid(),...d});save('referrals',S.referrals)}},
+  specialist:{title:'Add Specialist',fields:[
+    {id:'name',label:'Specialist Name',type:'text'},{id:'specialty',label:'Specialty',type:'text'},
+    {id:'facility',label:'Facility / Practice',type:'text'},{id:'nextDate',label:'Next Appointment',type:'date'},
+    {id:'status',label:'Status',type:'select',opts:['Active','Scheduled','Completed','On Hold']},
+    {id:'notes',label:'Notes',type:'textarea'}],
+    save(d){S.specialist.push({id:uid(),...d});save('specialist',S.specialist)}}
+};
+
+window.openM=function(type){
+  const cfg=MODS[type];if(!cfg)return;
+  const f=cfg.fields.map(f=>{
+    let i;
+    if(f.type==='select')i=`<select id="mf_${f.id}">${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
+    else if(f.type==='textarea')i=`<textarea id="mf_${f.id}" placeholder="${f.placeholder||''}"></textarea>`;
+    else i=`<input id="mf_${f.id}" type="${f.type}" placeholder="${f.placeholder||''}" />`;
+    return `<div class="form-group"><label>${f.label}</label>${i}</div>`;
+  }).join('');
+  document.getElementById('modal-inner').innerHTML=`<h3>${cfg.title}</h3>${f}<div class="mact"><button class="btn btn-o" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="subM('${type}')">Save</button></div>`;
+  document.getElementById('modal').classList.add('open');
+};
+window.subM=function(type){
+  const cfg=MODS[type];const d={};
+  cfg.fields.forEach(f=>{d[f.id]=gv('mf_'+f.id)});
+  cfg.save(d);closeM();render();
+};
+window.closeM=()=>document.getElementById('modal').classList.remove('open');
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeM()});
+
+
+/* ══ UPCOMING APPOINTMENTS ══ */
+function rUpcoming(){
+  // Gather all appointments from all sources
+  const now = new Date(); now.setHours(0,0,0,0);
+  const all = [];
+
+  // PCP routine
+  S.pcp_routine.forEach(r=>{
+    if(r.date){
+      const d=new Date(r.date+'T00:00:00');
+      all.push({date:r.date,_d:d,type:'PCP Routine',label:r.quarter,provider:r.pcp||'—',notes:r.notes||'',status:r.status,source:'pcp'});
+    }
+  });
+
+  // PCP sick
+  S.pcp_sick.forEach(r=>{
+    if(r.date){
+      const d=new Date(r.date+'T00:00:00');
+      all.push({date:r.date,_d:d,type:r.type,label:r.type,provider:'—',notes:r.notes||'',status:r.status,source:'sick'});
+    }
+  });
+
+  // Specialist
+  S.specialist.forEach(r=>{
+    if(r.nextDate){
+      const d=new Date(r.nextDate+'T00:00:00');
+      all.push({date:r.nextDate,_d:d,type:'Specialist',label:r.specialty||r.name,provider:r.name,notes:r.facility||'',status:r.status,source:'specialist'});
+    }
+  });
+
+  // Referrals pending/scheduled
+  S.referrals.forEach(r=>{
+    if(r.date && (r.status==='Pending'||r.status==='Scheduled')){
+      const d=new Date(r.date+'T00:00:00');
+      all.push({date:r.date,_d:d,type:'Referral',label:r.specialist+(r.specialistName?' — '+r.specialistName:''),provider:r.facility||'—',notes:'Referred by '+r.referredBy,status:r.status,source:'referral'});
+    }
+  });
+
+  // Sort by date
+  all.sort((a,b)=>a._d-b._d);
+
+  const upcoming = all.filter(a=>a._d>=now);
+  const past     = all.filter(a=>a._d<now).reverse().slice(0,5);
+
+  const typeColors = {
+    'PCP Routine':'b-green','Acute Visit':'b-amber','Sick Visit':'b-amber',
+    'Telehealth':'b-slate','ER Visit':'b-rose','Specialist':'b-purple',
+    'Referral':'b-amber'
+  };
+
+  function apptCard(a,isPast){
+    const diff = Math.round((a._d-now)/(1000*60*60*24));
+    let countdown='';
+    if(!isPast){
+      if(diff===0) countdown=`<span class="badge b-rose" style="font-size:.7rem">TODAY</span>`;
+      else if(diff===1) countdown=`<span class="badge b-amber" style="font-size:.7rem">TOMORROW</span>`;
+      else if(diff<=7) countdown=`<span class="badge b-amber" style="font-size:.7rem">In ${diff} days</span>`;
+      else countdown=`<span class="badge b-slate" style="font-size:.7rem">In ${diff} days</span>`;
+    }
+    return `<div class="rfc" style="margin-bottom:10px;${isPast?'opacity:.7':''}">
+      <div style="min-width:56px;text-align:center;flex-shrink:0">
+        <div style="font-family:Lora,serif;font-size:1.3rem;font-weight:600;color:var(--navy);line-height:1">${a._d.getDate()}</div>
+        <div style="font-size:.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:.5px">${a._d.toLocaleString('default',{month:'short'})}</div>
+        <div style="font-size:.7rem;color:var(--muted)">${a._d.getFullYear()}</div>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="badge ${typeColors[a.type]||'b-slate'}">${a.type}</span>
+          <strong style="font-size:.93rem">${a.label}</strong>
+          ${countdown}
+        </div>
+        <div style="font-size:.81rem;color:var(--slate);margin-top:3px">Provider: ${a.provider}</div>
+        ${a.notes?`<div style="font-size:.79rem;color:var(--muted);margin-top:2px">${a.notes}</div>`:''}
+        <div style="margin-top:5px">${sbadge(a.status)}</div>
+      </div>
+    </div>`;
+  }
+
+  const upcomingHtml = upcoming.length
+    ? upcoming.map(a=>apptCard(a,false)).join('')
+    : `<div class="card" style="padding:24px;text-align:center;color:var(--muted)">No upcoming appointments found. Add dates in PCP Visits, Specialist, or Referrals tabs.</div>`;
+
+  const pastHtml = past.length
+    ? past.map(a=>apptCard(a,true)).join('')
+    : `<p style="color:var(--muted);font-size:.87rem;padding:10px 0">No recent past appointments.</p>`;
+
+  return `<div class="sec-title">📆 Upcoming Appointments</div>
+    <p class="sec-sub">A live summary pulled from your PCP Visits, Specialist, and Referral tabs — all in one view. Add or edit appointments in those tabs.</p>
+
+    <div style="background:var(--navy-lt);border-radius:var(--radius);padding:12px 18px;margin-bottom:20px;font-size:.82rem;color:var(--navy);display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.1rem">💡</span>
+      <span>This view auto-updates whenever you add appointments in other tabs. To add a new appointment, go to the relevant tab and use the ✏️ Edit or + Add button.</span>
+    </div>
+
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:1rem;margin-bottom:14px">Upcoming & Scheduled</h3>
+    ${upcomingHtml}
+
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:1rem;margin:24px 0 14px">Recent Past (Last 5)</h3>
+    ${pastHtml}`;
+}
+
+/* ══ LAB RESULTS ══ */
+function rLabs(){
+  // Group by test name for trending
+  const groups = {};
+  S.labs.forEach((l,i)=>{
+    const key = l.test.toLowerCase().trim();
+    if(!groups[key]) groups[key]={name:l.test,entries:[]};
+    groups[key].entries.push({...l,i});
+  });
+
+  const groupCards = Object.values(groups).map(g=>{
+    const sorted = g.entries.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const latest = sorted[0];
+    let flagClass='b-green', flagLabel='Normal';
+    if(latest.flag==='High'){flagClass='b-rose';flagLabel='High';}
+    else if(latest.flag==='Low'){flagClass='b-amber';flagLabel='Low';}
+    else if(latest.flag==='Critical'){flagClass='b-rose';flagLabel='Critical';}
+    else if(latest.flag==='Borderline'){flagClass='b-amber';flagLabel='Borderline';}
+
+    const history = sorted.slice(1).map(e=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border);font-size:.79rem;color:var(--muted)">
+        <span>${e.date}</span><span>${e.value}${e.unit?' '+e.unit:''}</span>
+        <span class="badge ${e.flag==='Normal'||!e.flag?'b-green':e.flag==='High'||e.flag==='Critical'?'b-rose':'b-amber'}" style="font-size:.66rem">${e.flag||'Normal'}</span>
+        <button class="del-btn" onclick="delLab(${e.i})" style="font-size:.8rem">🗑</button>
+      </div>`).join('');
+
+    return `<div class="card" style="margin-bottom:16px">
+      <div style="padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-family:Lora,serif;font-weight:600;color:var(--navy);font-size:1rem">${g.name}</div>
+            <div style="font-size:.82rem;color:var(--slate);margin-top:2px">Latest: ${latest.date} · ${latest.provider||'—'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="text-align:right">
+              <div style="font-family:Lora,serif;font-size:1.4rem;font-weight:600;color:var(--navy)">${latest.value}<small style="font-size:.75rem;font-weight:400"> ${latest.unit||''}</small></div>
+              <div style="font-size:.75rem;color:var(--muted)">Ref: ${latest.refRange||'—'}</div>
+            </div>
+            <span class="badge ${flagClass}">${flagLabel}</span>
+            <button class="del-btn" onclick="delLab(${latest.i})">🗑</button>
+          </div>
+        </div>
+        ${latest.notes?`<div style="font-size:.81rem;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${latest.notes}</div>`:''}
+        ${history?`<div style="margin-top:8px"><div style="font-size:.73rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Previous Results</div>${history}</div>`:''}
+      </div>
+    </div>`;
+  });
+
+  const labsHtml = groupCards.length ? groupCards.join('') : `<p style="color:var(--muted);font-size:.87rem;padding:14px 0">No lab results logged yet.</p>`;
+
+  // Common lab panels for quick reference
+  const commonLabs = [
+    ['CBC (Complete Blood Count)','WBC, RBC, Hemoglobin, Hematocrit, Platelets'],
+    ['CMP (Comprehensive Metabolic)','Glucose, BUN, Creatinine, Electrolytes, Liver enzymes'],
+    ['Lipid Panel','Total Cholesterol, LDL, HDL, Triglycerides'],
+    ['HbA1c','3-month average blood sugar — goal <5.7% normal, <7% diabetic'],
+    ['TSH (Thyroid)','Thyroid stimulating hormone — normal 0.4–4.0 mIU/L'],
+    ['Vitamin D','25-OH Vitamin D — optimal 40–60 ng/mL'],
+    ['eGFR / BMP','Kidney function — goal >60 mL/min/1.73m²'],
+    ['PSA','Prostate-specific antigen — discuss with provider'],
+  ];
+
+  return `<div class="sec-title">🔬 Lab Results</div>
+    <p class="sec-sub">Log and track your lab values over time. Results are grouped by test name so you can see trends.</p>
+
+    <div class="g2">
+      <div>
+        <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin-bottom:14px">My Lab Results</h3>
+        ${labsHtml}
+      </div>
+      <div>
+        <div class="card" style="padding:20px;margin-bottom:16px">
+          <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:14px">Add Lab Result</h3>
+          <div class="if-wrap">
+            <div class="form-group"><label>Test Name</label><input id="lb_t" placeholder="e.g., HbA1c, Total Cholesterol, TSH" /></div>
+            <div class="form-group"><label>Result Value</label><input id="lb_v" placeholder="e.g., 5.8" /></div>
+            <div class="form-group"><label>Unit <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="lb_u" placeholder="e.g., %, mg/dL, mIU/L" /></div>
+            <div class="form-group"><label>Reference Range <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="lb_r" placeholder="e.g., &lt;5.7% or 0.4–4.0" /></div>
+            <div class="form-group"><label>Flag</label>
+              <select id="lb_f"><option>Normal</option><option>Borderline</option><option>Low</option><option>High</option><option>Critical</option></select>
+            </div>
+            <div class="form-group"><label>Date Drawn</label><input id="lb_d" type="date" /></div>
+            <div class="form-group"><label>Ordering Provider / Lab</label><input id="lb_p" placeholder="e.g., Dr. Smith / Quest Diagnostics" /></div>
+            <div class="form-group"><label>Notes</label><textarea id="lb_n" placeholder="e.g., Fasting specimen, provider discussed results…"></textarea></div>
+            <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addLab()">Add Lab Result</button>
+          </div>
+        </div>
+
+        <div class="scr-ref">
+          <h4>🔬 Common Lab Panels — Quick Reference</h4>
+          ${commonLabs.map(([name,desc])=>`<div style="margin-bottom:8px"><div style="font-size:.82rem;font-weight:600;color:var(--navy)">${name}</div><div style="font-size:.77rem;color:var(--slate)">${desc}</div></div>`).join('')}
+          <p style="font-size:.72rem;color:var(--muted);margin-top:10px;font-style:italic">Reference only. Your provider determines which labs are appropriate for you.</p>
+        </div>
+      </div>
+    </div>`;
+}
+window.addLab=()=>{
+  const t=gv('lb_t'),v=gv('lb_v'),d=gv('lb_d');
+  if(!t||!v){alert('Please enter a test name and result.');return;}
+  S.labs.push({id:uid(),test:t,value:v,unit:gv('lb_u'),refRange:gv('lb_r'),flag:gv('lb_f'),date:d,provider:gv('lb_p'),notes:gtv('lb_n').trim()});
+  save('labs',S.labs);render();
+};
+window.delLab=(i)=>{S.labs.splice(i,1);save('labs',S.labs);render()};
+
+/* ══ VACCINES & IMMUNIZATIONS ══ */
+function rVax(){
+  const logged = S.vaccines.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const cards = logged.map((v,i)=>`
+    <div class="rfc" style="margin-bottom:10px">
+      <div class="rfi">💉</div>
+      <div style="flex:1">
+        <div><strong>${v.name}</strong>${v.dose?' <span style="font-size:.8rem;color:var(--muted)">· '+v.dose+'</span>':''}</div>
+        <div style="font-size:.81rem;color:var(--slate)">Date: ${v.date||'—'} · Given by: ${v.provider||'—'}</div>
+        ${v.nextDue?`<div style="font-size:.79rem;color:var(--amber);font-weight:500">Next due: ${v.nextDue}</div>`:''}
+        ${v.lot?`<div style="font-size:.77rem;color:var(--muted)">Lot #: ${v.lot}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="delVax(${i})">🗑</button>
+    </div>`).join('')||`<p style="color:var(--muted);font-size:.87rem;padding:14px 0">No vaccines logged yet.</p>`;
+
+  // CDC recommended adult immunization schedule (simplified)
+  const schedule = [
+    {vax:'Influenza (Flu)',freq:'Annually',who:'All adults, every year',badge:'b-green'},
+    {vax:'COVID-19',freq:'As updated',who:'All adults — follow current CDC guidance',badge:'b-green'},
+    {vax:'Tdap / Td',freq:'Every 10 years',who:'Tetanus, Diphtheria, Pertussis booster',badge:'b-green'},
+    {vax:'Pneumococcal (PCV15/PCV20)',freq:'Once (65+)',who:'Adults 65+, or younger with certain conditions',badge:'b-amber'},
+    {vax:'Shingles (Zoster / Shingrix)',freq:'2-dose series',who:'Adults 50+ — two doses 2–6 months apart',badge:'b-amber'},
+    {vax:'RSV',freq:'Once (60+)',who:'Adults 60+ — discuss with provider',badge:'b-amber'},
+    {vax:'Hepatitis B',freq:'3-dose series',who:'All adults not previously vaccinated',badge:'b-slate'},
+    {vax:'Hepatitis A',freq:'2-dose series',who:'Adults at risk or traveling internationally',badge:'b-slate'},
+    {vax:'MMR',freq:'1–2 doses',who:'Adults born after 1957 without evidence of immunity',badge:'b-slate'},
+    {vax:'Varicella (Chickenpox)',freq:'2-dose series',who:'Adults without prior disease or vaccination',badge:'b-slate'},
+    {vax:'HPV',freq:'2–3 doses',who:'Through age 26; some adults 27–45 — discuss with provider',badge:'b-slate'},
+    {vax:'Meningococcal (MenACWY)',freq:'Per risk',who:'College students, travelers, immunocompromised',badge:'b-slate'},
+  ];
+
+  return `<div class="sec-title">💉 Vaccines & Immunizations</div>
+    <p class="sec-sub">Log your vaccination history and reference the adult immunization schedule. Always discuss your personal vaccine needs with your provider.</p>
+
+    <div class="g2">
+      <div>
+        <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.97rem;margin-bottom:14px">My Vaccination Record</h3>
+        ${cards}
+      </div>
+      <div>
+        <div class="card" style="padding:20px;margin-bottom:16px">
+          <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:14px">Log a Vaccine</h3>
+          <div class="if-wrap">
+            <div class="form-group"><label>Vaccine Name</label><input id="vx_n" placeholder="e.g., Influenza, Shingrix, Tdap" /></div>
+            <div class="form-group"><label>Dose / Series</label><input id="vx_ds" placeholder="e.g., Dose 1 of 2, Annual, Booster" /></div>
+            <div class="form-group"><label>Date Given</label><input id="vx_d" type="date" /></div>
+            <div class="form-group"><label>Given By / Location</label><input id="vx_p" placeholder="e.g., Dr. Smith, CVS Pharmacy" /></div>
+            <div class="form-group"><label>Lot Number <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="vx_l" placeholder="Lot number from your vaccine record card" /></div>
+            <div class="form-group"><label>Next Dose Due <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="vx_nd" type="date" /></div>
+            <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addVax()">Log Vaccine</button>
+          </div>
+        </div>
+
+        <div class="scr-ref">
+          <h4>💉 Recommended Adult Immunization Schedule</h4>
+          <p style="font-size:.75rem;color:var(--muted);margin-bottom:12px">Based on CDC guidance. Discuss your individual schedule with your provider.</p>
+          ${schedule.map(s=>`<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <span class="badge ${s.badge}" style="white-space:nowrap;flex-shrink:0;margin-top:2px">${s.freq}</span>
+            <div><div style="font-size:.83rem;font-weight:600;color:var(--navy)">${s.vax}</div>
+            <div style="font-size:.76rem;color:var(--slate)">${s.who}</div></div>
+          </div>`).join('')}
+          <p style="font-size:.71rem;color:var(--muted);margin-top:6px;font-style:italic">Reference only — not a substitute for provider guidance. Schedules vary by health history, age, and risk factors.</p>
+        </div>
+      </div>
+    </div>`;
+}
+window.addVax=()=>{
+  const n=gv('vx_n'),d=gv('vx_d');
+  if(!n||!d){alert('Please enter a vaccine name and date.');return;}
+  S.vaccines.push({id:uid(),name:n,dose:gv('vx_ds'),date:d,provider:gv('vx_p'),lot:gv('vx_l'),nextDue:gv('vx_nd')});
+  save('vaccines',S.vaccines);render();
+};
+window.delVax=(i)=>{S.vaccines.splice(i,1);save('vaccines',S.vaccines);render()};
+
+function toast(msg){
+  const t=document.createElement('div');t.innerHTML=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'22px',right:'22px',background:'var(--navy)',color:'#fff',padding:'12px 18px',borderRadius:'8px',fontFamily:'DM Sans,sans-serif',fontSize:'.86rem',zIndex:999,boxShadow:'0 4px 16px rgba(0,0,0,.2)',maxWidth:'320px',lineHeight:'1.5'});
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3800);
+}
+
+buildNav();render();
+</script>
+</body>
+</html>
