@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WellCharted Health — Child Tracker Ages 6–18</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --teal:   #2A7F7F;
+  --teal2:  #1a5f5f;
+  --mint:   #E8F5F5;
+  --gold:   #C8973A;
+  --gold2:  #A07530;
+  --cream:  #FDFAF5;
+  --sand:   #F0EAE0;
+  --text:   #1C2B2B;
+  --sub:    #4A6565;
+  --border: #D0E4E4;
+  --white:  #FFFFFF;
+  --danger: #D04040;
+  --warn:   #C07830;
+  --success:#2A7F5A;
+  --info:   #2A5F9F;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+/* ── LAYOUT ── */
+#app{display:flex;min-height:100vh;}
+#sidebar{width:260px;background:var(--teal2);color:#fff;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:200;transition:transform .3s;}
+#main{margin-left:260px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+#topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+#content{flex:1;padding:28px;}
+
+@media(max-width:800px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:translateX(0);}
+  #main{margin-left:0;}
+}
+
+/* ── SIDEBAR ── */
+.sb-brand{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sb-brand h1{font-family:'DM Serif Display',serif;font-size:18px;line-height:1.2;color:#fff;}
+.sb-brand p{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;letter-spacing:.05em;text-transform:uppercase;}
+.sb-section{padding:8px 0;}
+.sb-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);padding:6px 20px 2px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;border-radius:0;transition:background .15s;font-size:13.5px;color:rgba(255,255,255,.82);}
+.sb-item:hover{background:rgba(255,255,255,.08);}
+.sb-item.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600;}
+.sb-item .icon{width:18px;text-align:center;font-size:15px;}
+.sb-footer{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.35);}
+.sb-age-badge{background:var(--gold);color:#fff;font-size:10px;padding:2px 6px;border-radius:20px;font-weight:700;margin-left:auto;}
+
+/* ── TOPBAR ── */
+.menu-toggle{background:none;border:none;cursor:pointer;font-size:22px;display:none;color:var(--teal);}
+@media(max-width:800px){.menu-toggle{display:block;}}
+#child-selector{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--cream);position:relative;}
+#child-selector:hover{border-color:var(--teal);}
+.active-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
+#active-label{font-size:14px;font-weight:600;}
+#child-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.12);min-width:220px;z-index:300;overflow:hidden;}
+.child-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;}
+.child-item:hover{background:var(--mint);}
+.child-item.active{background:var(--mint);font-weight:600;}
+.child-delete-btn{background:none;border:none;cursor:pointer;font-size:15px;padding:4px 6px;border-radius:6px;opacity:.45;transition:opacity .15s, background .15s;flex-shrink:0;}
+.child-delete-btn:hover{opacity:1;background:#fde8e8;}
+.child-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+.add-child-btn{width:100%;padding:10px 14px;background:var(--teal);color:#fff;border:none;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;}
+.add-child-btn:hover{background:var(--teal2);}
+.tb-actions{display:flex;gap:10px;margin-left:auto;}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .15s;}
+.btn-primary{background:var(--teal);color:#fff;}
+.btn-primary:hover{background:var(--teal2);}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:var(--gold2);}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:24px;}
+.page-header h2{font-family:'DM Serif Display',serif;font-size:26px;color:var(--teal2);}
+.page-header p{color:var(--sub);font-size:14px;margin-top:4px;}
+
+/* ── CARDS ── */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.card-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--sub);margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* ── FORM ── */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.field input,.field textarea,.field select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);transition:border .15s;}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--teal);}
+.field textarea{resize:vertical;min-height:70px;}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow);}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);margin-bottom:6px;}
+.stat-val{font-size:28px;font-weight:700;color:var(--teal);font-family:'DM Serif Display',serif;}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:#E0F5E8;color:var(--success);}
+.badge-warning{background:#FFF3E0;color:var(--warn);}
+.badge-danger{background:#FDE8E8;color:var(--danger);}
+.badge-neutral{background:var(--sand);color:var(--sub);}
+.badge-info{background:#E0EEFF;color:var(--info);}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;}
+.tbl th{background:var(--mint);color:var(--teal2);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;text-align:left;font-weight:700;}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--mint);}
+.tbl-empty{text-align:center;color:var(--sub);padding:30px;font-size:14px;}
+.tbl-actions{display:flex;gap:6px;}
+
+/* ── WELL-CHILD TABS ── */
+.wc-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.wc-tab{padding:8px 14px;border-radius:8px;border:2px solid var(--border);background:#fff;cursor:pointer;text-align:center;transition:all .15s;min-width:72px;}
+.wc-tab:hover{border-color:var(--teal);background:var(--mint);}
+.wc-tab.active{border-color:var(--teal);background:var(--teal);color:#fff;}
+.wc-tab.done{border-color:var(--success);background:#E0F5E8;}
+.wc-tab.active.done{background:var(--teal);}
+.wc-tab-lbl{font-size:13px;font-weight:700;}
+.wc-tab-sub{font-size:10px;opacity:.7;margin-top:1px;}
+.wc-check{font-size:11px;color:var(--success);}
+
+/* ── ANTICIPATORY GUIDANCE ── */
+.ag-section{margin-bottom:18px;}
+.ag-title{font-size:13px;font-weight:700;color:var(--teal2);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.ag-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--gold);border-radius:2px;}
+.ag-list{list-style:none;padding:0;}
+.ag-list li{font-size:13px;color:var(--sub);padding:4px 0 4px 16px;position:relative;line-height:1.5;}
+.ag-list li::before{content:'•';position:absolute;left:0;color:var(--teal);}
+
+/* ── MILESTONE SECTION ── */
+.ms-age-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.ms-age-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;}
+.ms-age-btn:hover{border-color:var(--teal);color:var(--teal);}
+.ms-age-btn.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+.ms-domain{margin-bottom:16px;}
+.ms-domain-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--sub);margin-bottom:8px;}
+.ms-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+.ms-item:last-child{border-bottom:none;}
+.ms-cb{width:18px;height:18px;cursor:pointer;accent-color:var(--teal);flex-shrink:0;margin-top:1px;}
+.ms-lbl{font-size:13px;line-height:1.4;}
+.ms-concern{margin-left:auto;flex-shrink:0;}
+.ms-flag-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;}
+
+/* ── VACC GRID ── */
+.vacc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+.vacc-col{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.vacc-age{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--teal2);margin-bottom:8px;}
+.vacc-pill{font-size:11.5px;padding:3px 8px;border-radius:20px;margin-bottom:4px;background:var(--sand);color:var(--sub);}
+.vacc-pill.done{background:#E0F5E8;color:var(--success);}
+
+/* ── GROWTH CHART ── */
+#growth-canvas{width:100%;border-radius:8px;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:28px;max-width:520px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--teal2);margin-bottom:18px;}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+
+/* ── NO CHILD STATE ── */
+#no-child{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px;}
+#no-child h3{font-family:'DM Serif Display',serif;font-size:26px;color:var(--teal2);margin-bottom:10px;}
+#no-child p{color:var(--sub);max-width:380px;line-height:1.6;margin-bottom:24px;}
+
+/* ── PHOTO UPLOAD ── */
+.photo-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+.photo-thumb{width:88px;height:88px;border-radius:8px;object-fit:cover;border:2px solid var(--border);cursor:pointer;transition:transform .15s;}
+.photo-thumb:hover{transform:scale(1.04);border-color:var(--teal);}
+.photo-upload-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--mint);border:2px dashed var(--teal);border-radius:8px;color:var(--teal);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;}
+.photo-upload-btn:hover{background:#d0eded;}
+.photo-upload-input{display:none;}
+/* ── QUICK REFERENCE / SAFETY ── */
+.qr-section{margin-bottom:16px;}
+.qr-title{font-size:13px;font-weight:700;color:var(--teal2);padding:8px 14px;background:var(--mint);border-radius:8px 8px 0 0;border:1px solid var(--border);border-bottom:none;display:flex;align-items:center;gap:6px;}
+.qr-body{border:1px solid var(--border);border-radius:0 0 8px 8px;padding:12px 14px;}
+.qr-body table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.qr-body th{background:var(--sand);padding:6px 8px;text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--sub);}
+.qr-body td{padding:5px 8px;border-bottom:1px solid var(--border);}
+.qr-body tr:last-child td{border-bottom:none;}
+.qr-note{font-size:11px;color:var(--danger);margin-top:8px;line-height:1.5;}
+.poison-pill{background:#FDE8E8;border:1px solid #f5b5b5;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--danger);display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+/* ── ADHD SECTION ── */
+.adhd-card{background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border:1px solid #c0d0f5;border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
+.adhd-card h4{font-family:'DM Serif Display',serif;font-size:15px;color:#1a3a8f;margin-bottom:10px;}
+
+/* ── DISCLAIMER ── */
+.disclaimer-modal{max-width:560px;}
+.disclaimer-modal h3{color:var(--teal2);margin-bottom:10px;}
+.disclaimer-body{background:var(--mint);border:1px solid var(--border);border-radius:10px;padding:16px 18px;font-size:13px;line-height:1.7;color:var(--text);margin-bottom:16px;}
+.disclaimer-body b{color:var(--teal2);}
+.print-disclaimer{display:none;}
+@media print{
+  .print-disclaimer{display:block;border-top:2px solid #ccc;margin-top:24px;padding-top:12px;font-size:10px;color:#555;line-height:1.6;text-align:center;}
+}
+@media print{
+  #sidebar,#topbar,.btn,button,.no-print{display:none!important;}
+  #main{margin-left:0!important;}
+  #content{padding:0!important;}
+  .card{break-inside:avoid;box-shadow:none!important;border:1px solid #ccc!important;}
+  body{font-size:12px;}
+}
+
+/* ── WELLNESS SCREEN BANNER ── */
+.sdoh-banner{background:linear-gradient(135deg,var(--teal2),var(--teal));color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:20px;}
+.sdoh-banner h3{font-family:'DM Serif Display',serif;font-size:17px;margin-bottom:6px;}
+.sdoh-banner p{font-size:12.5px;opacity:.88;line-height:1.5;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-brand">
+    <h1>WellCharted<br>Health</h1>
+    <p>Child Tracker · Ages 6–18</p>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Navigation</div>
+    <div class="sb-item active" onclick="nav('overview')"><span class="icon">🏠</span> Overview <span class="sb-age-badge">6–18</span></div>
+    <div class="sb-item" onclick="nav('profile')"><span class="icon">👤</span> Child Profile</div>
+    <div class="sb-item" onclick="nav('wellchild')"><span class="icon">📋</span> Well-Child Visits</div>
+    <div class="sb-item" onclick="nav('growth')"><span class="icon">📈</span> Growth & BMI</div>
+    <div class="sb-item" onclick="nav('vaccinations')"><span class="icon">💉</span> Vaccinations</div>
+    <div class="sb-item" onclick="nav('milestones')"><span class="icon">🌟</span> Development</div>
+    <div class="sb-item" onclick="nav('mental')"><span class="icon">🧠</span> Mental Health</div>
+    <div class="sb-item" onclick="nav('sick')"><span class="icon">🤒</span> Sick Visits</div>
+    <div class="sb-item" onclick="nav('specialists')"><span class="icon">🩺</span> Specialists</div>
+    <div class="sb-item" onclick="nav('medications')"><span class="icon">💊</span> Medications</div>
+    <div class="sb-item" onclick="nav('allergies')"><span class="icon">⚠️</span> Allergies</div>
+    <div class="sb-item" onclick="nav('urgent')"><span class="icon">🚨</span> Urgent / ER</div>
+    <div class="sb-item" onclick="nav('dental')"><span class="icon">🦷</span> Dental & Vision</div>
+    <div class="sb-item" onclick="nav('sports')"><span class="icon">🏃</span> Sports Physicals</div>
+    <div class="sb-item" onclick="nav('documents')"><span class="icon">📁</span> Documents & Notes</div>
+    <div class="sb-item" onclick="nav('quickref')"><span class="icon">🚑</span> Quick Reference</div>
+  </div>
+  <div class="sb-footer">
+    Aligned with Bright Futures,<br>AAP &amp; CDC Guidelines 2024<br><br>
+    Print: Ctrl+P / Cmd+P<br><br>
+    <span style="opacity:.6;font-size:10px;line-height:1.5;display:block">⚕️ <b>Educational tool only.</b> Does not replace your child's primary care provider. Always consult your pediatrician for medical advice.</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div id="child-selector" onclick="toggleDropdown()">
+      <div class="active-avatar" id="active-avatar" style="background:var(--teal)">?</div>
+      <span id="active-label">Select Child</span>
+      <span>▾</span>
+      <div id="child-dropdown">
+        <div id="child-list"></div>
+        <button class="add-child-btn" onclick="openAddChild()">+ Add Child</button>
+      </div>
+    </div>
+    <div class="tb-actions">
+      <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-gold btn-sm" onclick="exportData()">⬇ Export</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+    <div id="no-child">
+      <div style="font-size:56px;margin-bottom:16px">👧🏽👦🏻</div>
+      <h3>Welcome to WellCharted Health</h3>
+      <p>Your complete child health tracker for ages 6–18, aligned with Bright Futures, AAP &amp; CDC guidelines. Add a child to get started.</p>
+      <button class="btn btn-primary" onclick="openAddChild()">+ Add Your Child</button>
+    </div>
+    <div id="page-content" style="display:none"></div>
+    <!-- Print-only disclaimer footer -->
+    <div class="print-disclaimer">
+      <b>⚕️ EDUCATIONAL TOOL DISCLAIMER</b><br>
+      WellCharted Health is an educational health tracking tool designed to help caregivers organize and record health information. It is intended for informational and organizational purposes only and does <b>not</b> constitute medical advice, diagnosis, or treatment. This tool does <b>not</b> replace the care, guidance, or recommendations of a licensed healthcare provider. Always consult your child's primary care physician or pediatric provider for all medical decisions, concerns, and emergencies. In case of a medical emergency, call 911 or go to the nearest emergency room immediately.
+    </div>
+  </div>
+</div>
+
+<!-- DISCLAIMER MODAL (first visit) -->
+<div class="modal-overlay" id="disclaimer-modal">
+  <div class="modal disclaimer-modal">
+    <h3>⚕️ Important Notice — Please Read</h3>
+    <div class="disclaimer-body">
+      <b>WellCharted Health is an educational tool only.</b><br><br>
+      This tracker is designed to help caregivers, parents, and foster families organize and record health information for children ages 6–18. It is intended for <b>informational and organizational purposes only.</b><br><br>
+      <b>This tool does NOT:</b>
+      <ul style="margin:8px 0 8px 18px;line-height:1.8">
+        <li>Replace your child's primary care provider (PCP) or pediatrician</li>
+        <li>Provide medical advice, diagnosis, or treatment</li>
+        <li>Substitute for professional medical evaluation</li>
+      </ul>
+      <b>Always consult your child's licensed healthcare provider</b> for all medical decisions, health concerns, medication questions, and follow-up care. The guidance included in this tracker is based on Bright Futures, AAP, and CDC published guidelines and is for general educational reference only — individual medical needs may vary.<br><br>
+      In a medical emergency, <b>call 911</b> or go to the nearest emergency room immediately.
+    </div>
+    <p style="font-size:12px;color:var(--sub);margin-bottom:16px">By continuing to use this tool you acknowledge that it is for educational and organizational purposes only and does not replace professional medical care.</p>
+    <div style="text-align:center">
+      <button class="btn btn-primary" style="padding:10px 32px;font-size:14px" onclick="acceptDisclaimer()">I Understand — Continue</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="add-child-modal">
+  <div class="modal">
+    <h3 id="child-modal-title">Add Child</h3>
+    <div class="grid2">
+      <div class="field"><label>First Name</label><input id="cf-fname" placeholder="First name"></div>
+      <div class="field"><label>Last Name</label><input id="cf-lname" placeholder="Last name"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Date of Birth</label><input id="cf-dob" type="date"></div>
+      <div class="field"><label>Biological Sex</label>
+        <select id="cf-sex"><option value="">Select</option><option>Male</option><option>Female</option><option>Other / Not specified</option></select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Race / Ethnicity</label><input id="cf-race" placeholder="Optional"></div>
+      <div class="field"><label>Primary Language</label><input id="cf-lang" placeholder="e.g. English"></div>
+    </div>
+    <div class="field"><label>Caregiver / Guardian Name(s)</label><input id="cf-guardian" placeholder="Name(s) of parent/guardian"></div>
+    <div class="field"><label>Caregiver Relationship</label>
+      <select id="cf-rel"><option value="">Select</option><option>Biological Parent</option><option>Adoptive Parent</option><option>Foster Parent</option><option>Grandparent</option><option>Relative Caregiver</option><option>Legal Guardian</option><option>Other</option></select>
+    </div>
+    <div class="field"><label>Primary Pediatrician / Provider</label><input id="cf-provider" placeholder="Provider name"></div>
+    <div class="field"><label>Provider Practice / Clinic</label><input id="cf-clinic" placeholder="Clinic name"></div>
+    <div class="field"><label>Provider Phone</label><input id="cf-phone" placeholder="Phone number"></div>
+    <div class="field"><label>Insurance / Medicaid ID</label><input id="cf-insurance" placeholder="ID number"></div>
+    <div class="field"><label>School Name</label><input id="cf-school" placeholder="Current school"></div>
+    <div class="field"><label>Grade</label><input id="cf-grade" placeholder="e.g. 6th grade"></div>
+    <div class="field"><label>Foster / Placement Notes</label><textarea id="cf-foster" placeholder="Case worker name, agency, placement date, prior records location, etc."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('add-child-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveChild()">Save Child</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERIC RECORD MODAL -->
+<div class="modal-overlay" id="record-modal">
+  <div class="modal">
+    <h3 id="record-modal-title">Add Record</h3>
+    <div id="record-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('record-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRecord()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA LAYER
+// ══════════════════════════════════════════
+const COLORS=['#2A7F7F','#C8973A','#7F2A6B','#2A5F9F','#7F5A2A','#2A7F5A','#6B2A7F'];
+let db = { children:[], activeId:null };
+let curPage='overview', curWcTab=null, curMsAge=null, dropOpen=false, editId=null, recordType=null;
+
+function persist(){ try{ localStorage.setItem('wc618',JSON.stringify(db)); }catch(e){} }
+function load(){ try{ const d=localStorage.getItem('wc618'); if(d) db=JSON.parse(d); }catch(e){} }
+function child(){ return db.children.find(c=>c.id===db.activeId)||null; }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+
+load();
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function nav(page){
+  curPage=page;
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
+  const idx=['overview','profile','wellchild','growth','vaccinations','milestones','mental','sick','specialists','medications','allergies','urgent','dental','sports','documents'];
+  const items=document.querySelectorAll('.sb-item');
+  const i=idx.indexOf(page);
+  if(i>=0 && items[i]) items[i].classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  render();
+}
+
+function render(){
+  const c=child();
+  document.getElementById('no-child').style.display=c?'none':'flex';
+  document.getElementById('page-content').style.display=c?'block':'none';
+  if(!c) return;
+  const pages={
+    overview:renderOverview, profile:renderProfile, wellchild:renderWellChild,
+    growth:renderGrowth, vaccinations:renderVaccinations, milestones:renderMilestones,
+    mental:renderMental, sick:renderSick, specialists:renderSpecialists,
+    medications:renderMedications, allergies:renderAllergies, urgent:renderUrgent,
+    dental:renderDental, sports:renderSports, documents:renderDocuments, quickref:renderQuickRef
+  };
+  if(pages[curPage]) pages[curPage](c);
+}
+
+// ══════════════════════════════════════════
+// CHILD SELECTOR
+// ══════════════════════════════════════════
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+document.addEventListener('click',e=>{
+  const sb=document.getElementById('sidebar');
+  if(sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.classList.contains('menu-toggle')) sb.classList.remove('open');
+  const dd=document.getElementById('child-dropdown');
+  if(!document.getElementById('child-selector').contains(e.target)){ dd.style.display='none'; dropOpen=false; }
+});
+
+function toggleDropdown(){ dropOpen=!dropOpen; document.getElementById('child-dropdown').style.display=dropOpen?'block':'none'; if(dropOpen) renderChildList(); }
+function renderChildList(){
+  document.getElementById('child-list').innerHTML=db.children.map((c,i)=>{
+    const init=(c.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return `<div class="child-item ${c.id===db.activeId?'active':''}" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer" onclick="selectChild('${c.id}')">
+        <div class="child-avatar" style="background:${COLORS[i%COLORS.length]}">${init}</div>
+        <span>${c.name||'Unnamed'}</span>
+      </div>
+      <button class="child-delete-btn" onclick="event.stopPropagation();deleteChild('${c.id}')" title="Delete ${c.name||'child'} and all records">🗑</button>
+    </div>`;
+  }).join('')||'<div style="padding:10px 14px;font-size:13px;color:#999">No children added yet</div>';
+}
+
+function deleteChild(id){
+  const c=db.children.find(x=>x.id===id);
+  if(!c) return;
+  const confirmed=confirm(`⚠️ Permanently delete "${c.name||'this child'}" and ALL their records?\n\nThis cannot be undone. Consider exporting first.`);
+  if(!confirmed) return;
+  db.children=db.children.filter(x=>x.id!==id);
+  if(db.activeId===id) db.activeId=db.children.length?db.children[0].id:null;
+  persist();
+  renderChildList();
+  if(db.activeId){ selectChild(db.activeId); }
+  else{
+    document.getElementById('active-avatar').textContent='?';
+    document.getElementById('active-avatar').style.background='var(--teal)';
+    document.getElementById('active-label').textContent='Select Child';
+    document.getElementById('no-child').style.display='flex';
+    document.getElementById('page-content').style.display='none';
+  }
+}
+
+function selectChild(id){
+  db.activeId=id; persist(); dropOpen=false;
+  document.getElementById('child-dropdown').style.display='none';
+  const c=child(); if(!c) return;
+  const i=db.children.indexOf(c);
+  const init=(c.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('active-avatar').textContent=init;
+  document.getElementById('active-avatar').style.background=COLORS[i%COLORS.length];
+  document.getElementById('active-label').textContent=c.name||'Child';
+  render();
+}
+
+function openAddChild(){ editId=null; document.getElementById('child-modal-title').textContent='Add Child'; ['fname','lname','dob','sex','race','lang','guardian','rel','provider','clinic','phone','insurance','school','grade','foster'].forEach(f=>{ const el=document.getElementById('cf-'+f); if(el) el.value=''; }); openModal('add-child-modal'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function saveChild(){
+  const fname=document.getElementById('cf-fname').value.trim();
+  const lname=document.getElementById('cf-lname').value.trim();
+  const dob=document.getElementById('cf-dob').value;
+  if(!fname){ alert('Please enter a first name.'); return; }
+  if(editId){
+    const c=db.children.find(x=>x.id===editId);
+    if(c){ c.fname=fname; c.lname=lname; c.name=(fname+' '+lname).trim(); c.dob=dob; c.sex=document.getElementById('cf-sex').value; c.race=document.getElementById('cf-race').value; c.lang=document.getElementById('cf-lang').value; c.guardian=document.getElementById('cf-guardian').value; c.rel=document.getElementById('cf-rel').value; c.provider=document.getElementById('cf-provider').value; c.clinic=document.getElementById('cf-clinic').value; c.phone=document.getElementById('cf-phone').value; c.insurance=document.getElementById('cf-insurance').value; c.school=document.getElementById('cf-school').value; c.grade=document.getElementById('cf-grade').value; c.foster=document.getElementById('cf-foster').value; }
+  } else {
+    const c={id:uid(),fname,lname,name:(fname+' '+lname).trim(),dob,sex:document.getElementById('cf-sex').value,race:document.getElementById('cf-race').value,lang:document.getElementById('cf-lang').value,guardian:document.getElementById('cf-guardian').value,rel:document.getElementById('cf-rel').value,provider:document.getElementById('cf-provider').value,clinic:document.getElementById('cf-clinic').value,phone:document.getElementById('cf-phone').value,insurance:document.getElementById('cf-insurance').value,school:document.getElementById('cf-school').value,grade:document.getElementById('cf-grade').value,foster:document.getElementById('cf-foster').value,growth:[],vaccinations:[],wcVisits:{},sick:[],specialists:[],medications:[],allergies:[],urgent:[],dental:[],sports:[],mental:[],documents:[],milestones:{}};
+    db.children.push(c); db.activeId=c.id;
+  }
+  persist(); closeModal('add-child-modal'); selectChild(db.activeId); renderChildList();
+}
+
+// ══════════════════════════════════════════
+// WELL-CHILD VISIT SCHEDULE (6–18)
+// ══════════════════════════════════════════
+const WC_VISITS=[
+  {key:'6yr',label:'6 yr',sub:'Annual'},
+  {key:'7yr',label:'7 yr',sub:'Annual'},
+  {key:'8yr',label:'8 yr',sub:'Annual'},
+  {key:'9yr',label:'9 yr',sub:'Annual'},
+  {key:'10yr',label:'10 yr',sub:'Annual'},
+  {key:'11yr',label:'11 yr',sub:'Annual'},
+  {key:'12yr',label:'12 yr',sub:'Annual'},
+  {key:'13yr',label:'13 yr',sub:'Annual'},
+  {key:'14yr',label:'14 yr',sub:'Annual'},
+  {key:'15yr',label:'15 yr',sub:'Annual'},
+  {key:'16yr',label:'16 yr',sub:'Annual'},
+  {key:'17yr',label:'17 yr',sub:'Annual'},
+  {key:'18yr',label:'18 yr',sub:'Transition'},
+];
+
+// ══════════════════════════════════════════
+// ANTICIPATORY GUIDANCE BY AGE (Bright Futures / AAP)
+// ══════════════════════════════════════════
+const AG={
+  '6yr':{
+    'Nutrition & Physical Activity':['Offer 3 balanced meals + 1–2 snacks daily','Limit juice to ≤4 oz/day; avoid sugary beverages','Encourage 60 min of physical activity daily','Model healthy eating at family meals','Limit fast food to occasional treats'],
+    'Sleep':['Children 6–12 need 9–12 hours of sleep nightly','Establish a consistent bedtime routine','Remove screens from the bedroom'],
+    'Safety':['Ensure proper bike helmet use every ride','Car safety: booster seat until 4\'9" and seatbelt fits properly','Teach water safety; ensure swim competency','Review home firearm safety if applicable'],
+    'Development & School Readiness':['Support reading at home — 20 min daily','Praise effort, not just results (growth mindset)','Communicate regularly with teachers','Screen for learning difficulties or delays'],
+    'Social & Emotional Health':['Encourage friendships and playdates','Discuss bullying — online and in person','Validate emotions; teach healthy coping skills'],
+    'Screen Time':['Limit to ≤2 hours of recreational screen time daily','No screens at meals or within 1 hour of bedtime','Use parental controls and co-view when possible'],
+    'Oral Health':['Brush twice daily with fluoride toothpaste','Dental visit every 6 months','Floss daily'],
+  },
+  '7yr':{
+    'Nutrition & Physical Activity':['Continue 60 min/day active play','Emphasize variety — fruits, vegetables, whole grains','Limit ultra-processed foods and snacks','Stay hydrated with water throughout the day'],
+    'Sleep':['9–12 hours nightly; consistent schedule on weekends','Discuss sleep hygiene importance'],
+    'Safety':['Pedestrian safety — looking both ways, crosswalks','Stranger awareness and personal safety','Sports safety — proper equipment and coaching'],
+    'Development':['Reading fluency and comprehension should be building','Fine motor skills continue developing','Support organizational skills for school'],
+    'Social & Emotional Health':['Peer relationships become increasingly important','Discuss fairness, empathy, and inclusion','Monitor for signs of anxiety or sadness'],
+    'Screen Time':['Consistent ≤2 hr/day recreational limit','Discuss responsible online behavior'],
+  },
+  '8yr':{
+    'Nutrition':['Breakfast daily improves school focus and performance','Healthy school lunches; review lunchbox contents','Limit added sugars and sodium'],
+    'Physical Activity':['60 min/day; variety of activities is beneficial','Structured sports can build teamwork and discipline'],
+    'Sleep':['9–12 hours; protect bedtime routine','Discuss how sleep affects mood and school performance'],
+    'Safety':['Bike, skateboard, and scooter helmet use','Digital safety — appropriate websites, no sharing personal info','Discuss good touch / bad touch and body autonomy'],
+    'Development & School':['Third grade reading benchmark — key academic milestone','Math fact fluency; early support if struggling'],
+    'Social & Emotional Health':['Peer pressure awareness begins','Build self-esteem through activities and accomplishments','Signs of anxiety: stomachaches, school refusal, sleep disruption'],
+  },
+  '9yr':{
+    'Nutrition':['Pre-adolescent nutrition awareness — calcium and iron important','Avoid diet talk and food restriction framing','Model positive body image'],
+    'Physical Activity':['60 min/day; screen time vs. active time balance','Begin discussing puberty-related physical changes'],
+    'Sleep':['9–11 hours; increasing homework may compress sleep'],
+    'Safety':['Internet safety — social media awareness, no apps without parent approval','Sports concussion awareness'],
+    'Puberty & Development':['Early puberty education — what to expect (begins 8–13 girls, 9–14 boys)','Emphasize that puberty is normal and healthy'],
+    'Social & Emotional Health':['Friendships deepen; peer group influence grows','Monitor for early signs of depression or anxiety','Discuss healthy relationships and respect'],
+  },
+  '10yr':{
+    'Nutrition':['Calcium 1,300 mg/day for bone development','Iron-rich foods important, especially for girls nearing menarche','Adequate protein for growing bodies'],
+    'Physical Activity':['60 min/day; organized sports and free play both valuable'],
+    'Sleep':['9–11 hours; screen curfew 1 hr before bed'],
+    'Safety':['Discuss online safety and privacy','Home alone safety if applicable','Fire safety review'],
+    'Puberty':['Puberty education and normalization','Menstrual health preparation for girls','Deodorant, hygiene habits discussion'],
+    'Mental Health':['Depression screening begins at 12 but watch for early signs now','Discuss stress, healthy coping, and trusted adults to talk to'],
+    'Social & Emotional Health':['Self-concept and identity forming','Peer comparison and social media impact on body image','Emphasize individual strengths and values'],
+  },
+  '11yr':{
+    'Nutrition':['3 servings dairy/day for calcium','Iron-rich foods — lean meat, beans, fortified cereals','Avoid energy drinks'],
+    'Physical Activity':['60 min/day; physical fitness testing in schools','Encourage enjoyable activities, not just competitive sports'],
+    'Sleep':['8–10 hours; circadian shift begins — later sleep preference is normal'],
+    'Safety':['Social media literacy — recognize manipulation and misinformation','Discuss sexting risks and digital footprint','Seat belt use every ride'],
+    'Puberty':['Most girls mid-puberty; boys beginning','Discuss emotional changes alongside physical ones','Acne management basics'],
+    'Mental Health':['Screening for depression (PHQ-A) begins at 12; assess risk now','Discuss suicide prevention — know warning signs','Build resilience skills: problem-solving, optimism, connection'],
+    'Substance Use':['Early prevention education — alcohol, tobacco, vaping, cannabis','"Talking with your child about drugs" conversation guidance'],
+  },
+  '12yr':{
+    'Nutrition':['Adolescent growth spurt — increased calorie needs','Limit fast food, soda, energy drinks','Eating disorder risk awareness — early warning signs'],
+    'Physical Activity':['60 min/day; PE compliance in schools','Sport specialization vs. free play balance'],
+    'Sleep':['8–10 hours; natural sleep shift later — school start time impact'],
+    'Safety':['Discuss risks of online predators','Peer pressure for risky behaviors — refusal skills'],
+    'Sexual Development':['Discuss puberty completion and sexual health basics','Introduce concepts of consent and healthy relationships'],
+    'Mental Health':['Annual depression screening (PHQ-A) begins','Suicide risk assessment — ask directly','Anxiety screening — GAD-7'],
+    'Substance Use Prevention':['Strong predictor of adult use if starts before 14','Discuss refusal skills and peer pressure management'],
+    'Immunizations':['Tdap booster','HPV series begins (2-dose if started before 15)','MenACWY (1st dose)','Flu annually','COVID-19 up to date'],
+  },
+  '13yr':{
+    'Nutrition':['Disordered eating patterns peak in early adolescence','Promote intuitive eating — hunger and fullness cues','Adequate iron, calcium, Vitamin D'],
+    'Physical Activity':['60 min/day; motivation may decline — connect to interests'],
+    'Sleep':['8–10 hours; most teens are chronically sleep-deprived','Screens in bedroom are the #1 disruptor'],
+    'Safety':['Cyberbullying — recognize and report','Digital privacy — what to share and not share online'],
+    'Sexual Health':['Age-appropriate sex education reinforcement','Discuss STI prevention, contraception awareness (not endorsement)','Consent, coercion, and healthy relationships'],
+    'Mental Health':['Annual PHQ-A and anxiety screening','Peer conflict, rejection sensitivity, and social media impact','Know local mental health resources'],
+    'Substance Use':['Direct conversation — peer use, social situations, refusal'],
+    'Confidentiality':['Discuss HIPAA confidentiality for adolescents','Provider may speak privately with teen'],
+  },
+  '14yr':{
+    'Nutrition':['Teens often skip breakfast — reinforce its importance','Protein, iron, calcium needs high during peak growth','Avoid fad diets and diet culture influence'],
+    'Physical Activity':['Team sports, individual fitness, PE — find what works','Sedentary behavior risk (excessive gaming/streaming)'],
+    'Sleep':['8–10 hours; school performance directly linked to sleep quantity'],
+    'Driving Safety':['Begin discussing graduated driver licensing','Passenger risks, phone use while driving, seatbelts always'],
+    'Sexual Health':['Contraception and STI prevention discussion','LGBTQ+ identity affirmation and support resources','Healthy relationship education'],
+    'Mental Health':['Annual depression and anxiety screening','Assess for self-harm behaviors (ask directly)','Discuss coping strategies: exercise, creativity, social support'],
+    'Substance Use':['Alcohol and cannabis most common — discuss risks','Vaping epidemic — nicotine addiction and lung risks'],
+  },
+  '15yr':{
+    'Nutrition':['Sports nutrition if athlete — pre/post workout fueling','Disordered eating vigilance continues'],
+    'Physical Activity':['Overtraining vs. adequate rest — sports physicals important'],
+    'Sleep':['8–10 hours; driving with sleep deprivation is dangerous'],
+    'Driving Safety':['Learner\'s permit conversations — rules of the road','Distracted and drowsy driving risks'],
+    'Sexual Health':['Contraception access and STI testing if sexually active','Discuss pregnancy options in non-judgmental way','HPV vaccine catch-up if not yet started'],
+    'Mental Health':['Continued annual screening','Connect to school counselor or therapist if needed','Peer counseling programs and crisis lines (988)'],
+    'Substance Use':['Opioid/fentanyl awareness — even counterfeit pills are dangerous','Discuss Narcan access and overdose response'],
+    'Future Planning':['Begin thinking about post-secondary goals','School performance, extracurriculars, interests'],
+  },
+  '16yr':{
+    'Nutrition':['Caloric needs high for active teens; adequate nutrition supports brain development'],
+    'Physical Activity':['Work schedules may reduce activity — prioritize movement'],
+    'Sleep':['8–10 hours; work and school scheduling impact'],
+    'Driving':['Licensed driver conversations — safety, insurance, responsibilities','Zero tolerance for alcohol or substances while driving'],
+    'Sexual Health':['Annual STI screening if sexually active','Long-acting contraception discussion if appropriate'],
+    'Mental Health':['Continued annual screening; academic stress peaks in 11th grade','College/career anxiety is common — normalize and support'],
+    'Substance Use':['High-risk period — increased independence, less supervision','Fentanyl test strip awareness; naloxone education'],
+    'Employment':['Teen work — benefits, risks, work-life balance','Financial literacy basics'],
+  },
+  '17yr':{
+    'Nutrition':['Final growth stages — nutrition still critical','Discuss healthy eating patterns for college/adult life'],
+    'Physical Activity':['Post-high-school activity planning — how to stay active'],
+    'Sleep':['8–10 hours; college adjustment will challenge sleep'],
+    'Safety':['Road safety as independent driver'],
+    'Sexual Health':['Comprehensive sexual health review','MenACWY booster (2nd dose at 16) if not done','Continued STI screening if active'],
+    'Mental Health':['Transition stress — college, work, military, or adulthood','Assess for untreated anxiety, depression, or ADHD','Discuss mental health resources available as an adult'],
+    'Transition Planning':['Health insurance transition after 18 (Medicaid, parent plan until 26)','Encourage self-advocacy for health care','Transfer medical records plan'],
+    'Substance Use':['Review alcohol laws, risks on college campuses'],
+  },
+  '18yr':{
+    'Transition to Adult Care':['Establish care with adult primary care provider','HIPAA transition — minor becomes adult, guardian loses automatic access','Discuss patient portal, appointment management, prescription refills'],
+    'Insurance':['Options: parent plan until 26, employer coverage, Marketplace, Medicaid (state-specific)'],
+    'Preventive Care':['Annual physical with adult PCP','Pap smear begins at 21 for females','Testicular self-exam education for males'],
+    'Sexual & Reproductive Health':['Full STI panel if sexually active','Contraception plan as adult','MenB vaccine if not prior'],
+    'Mental Health':['Mental health plan for adult life','Therapy, medication, crisis resources in new location/setting'],
+    'Substance Use':['Legal alcohol use — harm reduction for adults','Cannabis — state laws, health impacts'],
+    'Financial & Life Skills':['Health literacy — reading EOBs, understanding deductibles','Medication management independently'],
+  },
+};
+
+// ══════════════════════════════════════════
+// VACCINATION SCHEDULE (6–18) — AAP/CDC 2024
+// ══════════════════════════════════════════
+const VAX_SCHED=[
+  {age:'4–6 yr',vaccines:['DTaP (5th)','IPV (4th)','MMR (2nd)','Varicella (2nd)','Flu (annual)']},
+  {age:'11–12 yr',vaccines:['Tdap','HPV (1st dose)','MenACWY (1st)','Flu (annual)','COVID-19 updated']},
+  {age:'13–15 yr',vaccines:['HPV (2nd dose)','Flu (annual)','COVID-19 updated']},
+  {age:'16 yr',vaccines:['MenACWY (2nd)','MenB (series)','Flu (annual)']},
+  {age:'17–18 yr',vaccines:['Flu (annual)','COVID-19 updated','MenB if not prior','HPV catch-up if needed']},
+  {age:'Catch-up/Annual',vaccines:['Flu (every season)','HepA (if not prior)','HepB (if not prior)','Varicella (if no immunity)']},
+];
+
+// ══════════════════════════════════════════
+// DEVELOPMENTAL MILESTONES (6–18)
+// ══════════════════════════════════════════
+const MILESTONES={
+  '6–7yr':{
+    'Cognitive':['Reads simple books independently','Understands cause and effect','Follows multi-step instructions','Counts to 100; basic addition and subtraction'],
+    'Language':['Speaks in full, complex sentences','Asks many "why" questions','Tells stories with beginning, middle, and end'],
+    'Social / Emotional':['Makes and keeps friends','Understands rules of games and fairness','Shows empathy for others','May experience peer pressure'],
+    'Motor / Physical':['Rides bike without training wheels','Ties shoelaces','Handwriting is legible','Increased coordination in sports'],
+  },
+  '8–10yr':{
+    'Cognitive':['Reading fluency improves significantly','Understands abstract concepts (time, money)','Better organized thinking and planning','Interested in how things work'],
+    'Language':['Vocabulary rapidly expanding','Can argue a point logically','Written expression develops'],
+    'Social / Emotional':['Peer groups become very important','Gender identity and role awareness increases','May have best friends; conflict management developing','Growing sense of right and wrong'],
+    'Motor / Physical':['Sports skills increasingly coordinated','Physical differences between peers become noticeable','Puberty may begin (especially girls 8–10)'],
+  },
+  '11–12yr':{
+    'Cognitive':['Abstract reasoning emerging (Piaget formal operations)','Can think hypothetically','Interest in justice and fairness','Academic performance directly tied to engagement'],
+    'Language':['Complex reading and writing','Humor becomes more nuanced','Sarcasm and irony understood'],
+    'Social / Emotional':['Identity exploration begins','Peer approval extremely important','Parent-child conflict may increase','Romantic interests may emerge'],
+    'Puberty / Physical':['Puberty fully underway for most girls','Boys beginning puberty (voice change, growth spurt)','Body image concerns increase'],
+  },
+  '13–15yr':{
+    'Cognitive':['Developing logical and critical thinking','Can consider multiple perspectives','Increased ability to plan for future','Risk assessment still immature'],
+    'Language':['Adult-level reading comprehension','Persuasive writing and debate skills'],
+    'Social / Emotional':['Identity formation central task (Erikson)','Peer influence peaks','May question family values and beliefs','Romantic relationships and sexual identity'],
+    'Physical':['Peak height velocity (boys)','Menstruation well established (girls)','Acne, body odor, increased strength (boys)'],
+  },
+  '16–18yr':{
+    'Cognitive':['Near-adult reasoning; still developing impulse control (prefrontal cortex matures mid-20s)','Future-oriented thinking; college/career planning','Can understand long-term consequences'],
+    'Language':['Adult communication style','Vocabulary reflects education and interests'],
+    'Social / Emotional':['Developing stable identity','Romantic relationships more serious','Work and independence increasing','Beginning to separate from family (healthy)'],
+    'Physical':['Growth mostly complete','Adult body composition','Sexual maturity','Sleep pattern shifts persist'],
+  },
+};
+
+// ══════════════════════════════════════════
+// RENDER OVERVIEW
+// ══════════════════════════════════════════
+function renderOverview(c){
+  const stats=[
+    {l:'Growth Records',v:(c.growth||[]).length},
+    {l:'Vaccinations',v:(c.vaccinations||[]).length},
+    {l:'Well-Child Visits',v:Object.values(c.wcVisits||{}).filter(v=>v&&v.date).length},
+    {l:'Sick Visits',v:(c.sick||[]).length},
+    {l:'Specialists',v:(c.specialists||[]).length},
+    {l:'Medications',v:(c.medications||[]).length},
+    {l:'Allergies',v:(c.allergies||[]).length},
+    {l:'Urgent/ER',v:(c.urgent||[]).length},
+  ];
+  const age=getAge(c.dob);
+  const given=new Set((c.vaccinations||[]).map(v=>(v.vaccine||'').trim().toLowerCase()));
+  const vaccGrid=VAX_SCHED.map(col=>`<div class="vacc-col"><div class="vacc-age">${col.age}</div>${col.vaccines.map(v=>{const done=[...given].some(g=>g&&v&&g.toLowerCase().includes(v.split(' ')[0].toLowerCase()));return`<div class="vacc-pill ${done?'done':''}">${done?'✓ ':''} ${v}</div>`;}).join('')}</div>`).join('');
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header">
+      <h2>Overview — ${c.name}</h2>
+      <p>${age} &nbsp;|&nbsp; DOB: ${c.dob||'—'} &nbsp;|&nbsp; Provider: ${c.provider||'—'} &nbsp;|&nbsp; School: ${c.school||'—'} ${c.grade?'('+c.grade+')':''}</p>
+    </div>
+    ${c.rel&&(c.rel.includes('Foster')||c.rel.includes('Kinship')||c.rel.includes('Relative'))?`<div class="sdoh-banner"><h3>📋 Foster / Kinship Placement Record</h3><p>Guardian: ${c.guardian||'—'} &nbsp;|&nbsp; Relationship: ${c.rel} &nbsp;|&nbsp; ${c.foster||'No additional placement notes.'}</p></div>`:''}
+    <div class="stats-grid">${stats.map(s=>`<div class="stat-card"><div class="stat-lbl">${s.l}</div><div class="stat-val">${s.v}</div></div>`).join('')}</div>
+    <div class="card">
+      <div class="card-title">Vaccination Schedule Overview (Ages 6–18)</div>
+      <div class="vacc-grid">${vaccGrid}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Child Information</div>
+      <div class="grid3">
+        <div><b>Name:</b> ${c.name||'—'}</div>
+        <div><b>DOB:</b> ${c.dob||'—'}</div>
+        <div><b>Age:</b> ${age}</div>
+        <div><b>Sex:</b> ${c.sex||'—'}</div>
+        <div><b>Language:</b> ${c.lang||'—'}</div>
+        <div><b>Guardian:</b> ${c.guardian||'—'}</div>
+        <div><b>Relationship:</b> ${c.rel||'—'}</div>
+        <div><b>Provider:</b> ${c.provider||'—'}</div>
+        <div><b>Clinic:</b> ${c.clinic||'—'}</div>
+        <div><b>Insurance:</b> ${c.insurance||'—'}</div>
+        <div><b>School:</b> ${c.school||'—'}</div>
+        <div><b>Grade:</b> ${c.grade||'—'}</div>
+      </div>
+      <div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="openEditChild()">✏️ Edit Child Info</button></div>
+    </div>`;
+}
+
+function getAge(dob){
+  if(!dob) return '—';
+  const d=new Date(dob), now=new Date();
+  const yr=now.getFullYear()-d.getFullYear()-((now.getMonth()<d.getMonth()||(now.getMonth()===d.getMonth()&&now.getDate()<d.getDate()))?1:0);
+  const mo=Math.floor((now-d)/(1000*60*60*24*30.44));
+  return yr>0?yr+' years old':mo+' months old';
+}
+
+function openEditChild(){
+  const c=child(); if(!c) return;
+  editId=c.id; document.getElementById('child-modal-title').textContent='Edit Child';
+  const map={fname:'fname',lname:'lname',dob:'dob',sex:'sex',race:'race',lang:'lang',guardian:'guardian',rel:'rel',provider:'provider',clinic:'clinic',phone:'phone',insurance:'insurance',school:'school',grade:'grade',foster:'foster'};
+  Object.entries(map).forEach(([k,f])=>{ const el=document.getElementById('cf-'+f); if(el) el.value=c[k]||''; });
+  openModal('add-child-modal');
+}
+
+// ══════════════════════════════════════════
+// RENDER PROFILE
+// ══════════════════════════════════════════
+function renderProfile(c){
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Child Profile</h2><p>Medical and personal information for ${c.name}</p></div>
+    <div class="card">
+      <div class="card-title">Personal Information</div>
+      <div class="grid2">
+        <div class="field"><label>First Name</label><input value="${c.fname||''}" onchange="updateField('fname',this.value)"></div>
+        <div class="field"><label>Last Name</label><input value="${c.lname||''}" onchange="updateField('lname',this.value)"></div>
+        <div class="field"><label>Date of Birth</label><input type="date" value="${c.dob||''}" onchange="updateField('dob',this.value)"></div>
+        <div class="field"><label>Biological Sex</label><select onchange="updateField('sex',this.value)"><option ${c.sex==='Male'?'selected':''}>Male</option><option ${c.sex==='Female'?'selected':''}>Female</option><option ${c.sex==='Other / Not specified'?'selected':''}>Other / Not specified</option></select></div>
+        <div class="field"><label>Race / Ethnicity</label><input value="${c.race||''}" onchange="updateField('race',this.value)"></div>
+        <div class="field"><label>Primary Language</label><input value="${c.lang||''}" onchange="updateField('lang',this.value)"></div>
+        <div class="field"><label>School</label><input value="${c.school||''}" onchange="updateField('school',this.value)"></div>
+        <div class="field"><label>Grade</label><input value="${c.grade||''}" onchange="updateField('grade',this.value)"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Guardian / Caregiver</div>
+      <div class="grid2">
+        <div class="field"><label>Guardian Name(s)</label><input value="${c.guardian||''}" onchange="updateField('guardian',this.value)"></div>
+        <div class="field"><label>Relationship</label><select onchange="updateField('rel',this.value)"><option value="">Select</option><option ${c.rel==='Biological Parent'?'selected':''}>Biological Parent</option><option ${c.rel==='Adoptive Parent'?'selected':''}>Adoptive Parent</option><option ${c.rel==='Foster Parent'?'selected':''}>Foster Parent</option><option ${c.rel==='Grandparent'?'selected':''}>Grandparent</option><option ${c.rel==='Relative Caregiver'?'selected':''}>Relative Caregiver</option><option ${c.rel==='Legal Guardian'?'selected':''}>Legal Guardian</option><option ${c.rel==='Other'?'selected':''}>Other</option></select></div>
+      </div>
+      <div class="field"><label>Foster / Placement Notes (case worker, agency, prior records, etc.)</label><textarea onchange="updateField('foster',this.value)">${c.foster||''}</textarea></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Provider Information</div>
+      <div class="grid2">
+        <div class="field"><label>Pediatrician / Provider</label><input value="${c.provider||''}" onchange="updateField('provider',this.value)"></div>
+        <div class="field"><label>Clinic / Practice</label><input value="${c.clinic||''}" onchange="updateField('clinic',this.value)"></div>
+        <div class="field"><label>Phone</label><input value="${c.phone||''}" onchange="updateField('phone',this.value)"></div>
+        <div class="field"><label>Insurance / Medicaid ID</label><input value="${c.insurance||''}" onchange="updateField('insurance',this.value)"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Past Medical History</div>
+      <div class="field"><label>Known Medical Conditions / Diagnoses</label><textarea placeholder="List any diagnoses..." onchange="updateField('conditions',this.value)">${c.conditions||''}</textarea></div>
+      <div class="field"><label>Previous Surgeries / Hospitalizations</label><textarea placeholder="Dates, procedures..." onchange="updateField('surgeries',this.value)">${c.surgeries||''}</textarea></div>
+      <div class="field"><label>Family Medical History</label><textarea placeholder="Heart disease, diabetes, cancer, mental health..." onchange="updateField('famhx',this.value)">${c.famhx||''}</textarea></div>
+      <div class="field"><label>Developmental / Learning Concerns</label><textarea placeholder="IEP, 504, speech therapy, OT, etc." onchange="updateField('devnotes',this.value)">${c.devnotes||''}</textarea></div>
+    </div>`;
+}
+
+function updateField(key,val){
+  const c=child(); if(!c) return;
+  c[key]=val; if(key==='fname'||key==='lname') c.name=(c.fname+' '+c.lname).trim();
+  persist();
+}
+
+// ══════════════════════════════════════════
+// RENDER WELL-CHILD VISITS
+// ══════════════════════════════════════════
+function renderWellChild(c){
+  if(!c.wcVisits) c.wcVisits={};
+  if(!curWcTab) curWcTab=WC_VISITS[0].key;
+  const tabs=WC_VISITS.map(v=>{
+    const vd=c.wcVisits[v.key]||{};
+    const done=!!(vd.date||vd.notes);
+    return `<div class="wc-tab ${curWcTab===v.key?'active':''} ${done?'done':''}" onclick="selWcTab('${v.key}')">
+      <div class="wc-tab-lbl">${v.label}</div>
+      <div class="wc-tab-sub">${v.sub}</div>
+      ${done?'<div class="wc-check">✓ Done</div>':''}
+    </div>`;
+  }).join('');
+
+  const vd=c.wcVisits[curWcTab]||{};
+  const ag=AG[curWcTab]||{};
+  const agHTML=Object.entries(ag).map(([title,items])=>`
+    <div class="ag-section">
+      <div class="ag-title">${title}</div>
+      <ul class="ag-list">${items.map(i=>`<li>${i}</li>`).join('')}</ul>
+    </div>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Well-Child Visits</h2><p>Annual visits aligned with Bright Futures &amp; AAP guidelines — Ages 6–18</p></div>
+    <div class="wc-nav">${tabs}</div>
+    <div class="grid2">
+      <div>
+        <div class="card">
+          <div class="card-title">Visit Record — ${curWcTab.replace('yr',' Year')}</div>
+          <div class="field"><label>Visit Date</label><input type="date" value="${vd.date||''}" onchange="saveWC('date',this.value)"></div>
+          <div class="field"><label>Provider Seen</label><input value="${vd.providerSeen||''}" placeholder="Provider name" onchange="saveWC('providerSeen',this.value)"></div>
+          <div class="grid2">
+            <div class="field"><label>Height (in)</label><input type="number" value="${vd.height||''}" placeholder="inches" onchange="saveWC('height',this.value)"></div>
+            <div class="field"><label>Weight (lbs)</label><input type="number" value="${vd.weight||''}" placeholder="lbs" onchange="saveWC('weight',this.value)"></div>
+            <div class="field"><label>BMI</label><input value="${vd.height&&vd.weight?bmi(vd.weight,vd.height):'—'}" readonly style="background:var(--cream)"></div>
+            <div class="field"><label>Blood Pressure</label><input value="${vd.bp||''}" placeholder="e.g. 110/70" onchange="saveWC('bp',this.value)"></div>
+            <div class="field"><label>Heart Rate (bpm)</label><input type="number" value="${vd.hr||''}" onchange="saveWC('hr',this.value)"></div>
+            <div class="field"><label>Vision</label><input value="${vd.vision||''}" placeholder="e.g. 20/20" onchange="saveWC('vision',this.value)"></div>
+          </div>
+          <div class="field"><label>Hearing Screen</label><select onchange="saveWC('hearing',this.value)"><option value="">Select</option><option ${vd.hearing==='Passed'?'selected':''}>Passed</option><option ${vd.hearing==='Referred'?'selected':''}>Referred</option><option ${vd.hearing==='Not done'?'selected':''}>Not done</option></select></div>
+          <div class="field"><label>Depression Screen (PHQ-A)</label><select onchange="saveWC('depressionScreen',this.value)"><option value="">Select</option><option ${vd.depressionScreen==='Negative'?'selected':''}>Negative</option><option ${vd.depressionScreen==='Positive - low risk'?'selected':''}>Positive - low risk</option><option ${vd.depressionScreen==='Positive - referred'?'selected':''}>Positive - referred</option><option ${vd.depressionScreen==='Not done'?'selected':''}>Not done</option></select></div>
+          <div class="field"><label>SDOH / Social Needs Screen</label><select onchange="saveWC('sdoh',this.value)"><option value="">Select</option><option ${vd.sdoh==='No concerns'?'selected':''}>No concerns</option><option ${vd.sdoh==='Concerns identified - resources provided'?'selected':''}>Concerns identified - resources provided</option></select></div>
+          <div class="field"><label>Vaccines Given at This Visit</label><input value="${vd.vaccines||''}" placeholder="e.g. Flu, Tdap" onchange="saveWC('vaccines',this.value)"></div>
+          <div class="field"><label>Visit Notes / Concerns</label><textarea onchange="saveWC('notes',this.value)" placeholder="Provider or parent notes...">${vd.notes||''}</textarea></div>
+          <div class="field"><label>Follow-up / Referrals</label><textarea onchange="saveWC('followup',this.value)" placeholder="Next steps, referrals, labs...">${vd.followup||''}</textarea></div>
+          <div class="field"><label>Next Well-Child Visit Due</label><input type="date" value="${vd.nextDue||''}" onchange="saveWC('nextDue',this.value)"></div>
+          <div class="field">
+            <label>📷 Visit Photos / Documents</label>
+            <label class="photo-upload-btn"><span>📷</span> Add Photo<input type="file" class="photo-upload-input" accept="image/*" multiple onchange="addWCPhotos(event,'${curWcTab}')"></label>
+            <div class="photo-grid" id="wc-photos-${curWcTab}">${(vd.photos||[]).map((p,pi)=>`<img src="${p}" class="photo-thumb" onclick="viewPhoto('${p}')" title="Click to view">`).join('')}</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">Anticipatory Guidance — ${curWcTab.replace('yr',' Year Visit')}</div>
+          <p style="font-size:12px;color:var(--sub);margin-bottom:14px">Based on Bright Futures / AAP guidelines. Review and discuss with provider.</p>
+          ${agHTML||'<p style="color:var(--sub)">Select a visit age to view guidance.</p>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+function selWcTab(key){ curWcTab=key; nav('wellchild'); }
+function saveWC(field,val){
+  const c=child(); if(!c) return;
+  if(!c.wcVisits) c.wcVisits={};
+  if(!c.wcVisits[curWcTab]) c.wcVisits[curWcTab]={};
+  c.wcVisits[curWcTab][field]=val; persist();
+}
+function addWCPhotos(evt,tabKey){
+  const c=child(); if(!c) return;
+  if(!c.wcVisits) c.wcVisits={}; if(!c.wcVisits[tabKey]) c.wcVisits[tabKey]={}; if(!c.wcVisits[tabKey].photos) c.wcVisits[tabKey].photos=[];
+  const files=Array.from(evt.target.files);
+  let done=0;
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      c.wcVisits[tabKey].photos.push(e.target.result); persist(); done++;
+      if(done===files.length){const pg=document.getElementById('wc-photos-'+tabKey);if(pg){pg.innerHTML=c.wcVisits[tabKey].photos.map(p=>`<img src="${p}" class="photo-thumb" onclick="viewPhoto('${p}')">`).join('');}}
+    };
+    reader.readAsDataURL(f);
+  });
+}
+function viewPhoto(src){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  ov.innerHTML=`<img src="${src}" style="max-width:90vw;max-height:90vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.5)">`;
+  ov.onclick=()=>ov.remove(); document.body.appendChild(ov);
+}
+function bmi(w,h){ const wn=parseFloat(w),hn=parseFloat(h); if(!wn||!hn)return'—'; return(wn*703/(hn*hn)).toFixed(1); }
+
+// ══════════════════════════════════════════
+// RENDER GROWTH
+// ══════════════════════════════════════════
+function renderGrowth(c){
+  const rows=(c.growth||[]).map((g,i)=>`<tr>
+    <td>${g.date||'—'}</td>
+    <td>${g.height||'—'} in</td>
+    <td>${g.weight||'—'} lbs</td>
+    <td>${g.height&&g.weight?bmi(g.weight,g.height):'—'}</td>
+    <td>${g.bp||'—'}</td>
+    <td>${g.notes||'—'}</td>
+    <td><div class="tbl-actions"><button class="btn btn-danger btn-sm" onclick="deleteRecord('growth',${i})">✕</button></div></td>
+  </tr>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Growth &amp; BMI</h2><p>Track height, weight, and BMI over time</p></div>
+    <div class="card">
+      <div class="card-title">Growth Chart</div>
+      <canvas id="growth-canvas" height="220"></canvas>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Growth Records</div>
+        <button class="btn btn-primary btn-sm" onclick="openRecord('growth')">+ Add Measurement</button>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr><th>Date</th><th>Height (in)</th><th>Weight (lbs)</th><th>BMI</th><th>Blood Pressure</th><th>Notes</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="7" class="tbl-empty">No growth records yet. Add the first measurement.</td></tr>'}</tbody>
+      </table></div>
+      <p style="font-size:11px;color:var(--sub);margin-top:10px">BMI Reference (CDC): Underweight &lt;5th %ile · Healthy 5–84th %ile · Overweight 85–94th %ile · Obese ≥95th %ile. BMI interpretation requires CDC growth charts by age and sex.</p>
+    </div>`;
+  drawGrowthChart(c);
+}
+
+function drawGrowthChart(c){
+  const canvas=document.getElementById('growth-canvas'); if(!canvas) return;
+  const data=(c.growth||[]).filter(g=>g.date&&g.weight).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||600; canvas.height=220;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(data.length<2){ctx.fillStyle='#999';ctx.font='14px DM Sans';ctx.textAlign='center';ctx.fillText('Add 2+ records to see chart',canvas.width/2,110);return;}
+  const pad={t:20,r:20,b:40,l:50};
+  const W=canvas.width-pad.l-pad.r, H=canvas.height-pad.t-pad.b;
+  const weights=data.map(g=>parseFloat(g.weight));
+  const minW=Math.min(...weights)-5, maxW=Math.max(...weights)+5;
+  ctx.strokeStyle='#D0E4E4'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=pad.t+H*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();ctx.fillStyle='#999';ctx.font='11px DM Sans';ctx.textAlign='right';ctx.fillText(Math.round(maxW-(maxW-minW)*i/4),pad.l-6,y+4);}
+  ctx.strokeStyle='#2A7F7F'; ctx.lineWidth=2.5; ctx.beginPath();
+  data.forEach((g,i)=>{const x=pad.l+W*i/(data.length-1);const y=pad.t+H*(1-(parseFloat(g.weight)-minW)/(maxW-minW));i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.stroke();
+  data.forEach((g,i)=>{const x=pad.l+W*i/(data.length-1);const y=pad.t+H*(1-(parseFloat(g.weight)-minW)/(maxW-minW));ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#2A7F7F';ctx.fill();ctx.fillStyle='#333';ctx.font='10px DM Sans';ctx.textAlign='center';ctx.fillText(g.date.slice(5),x,canvas.height-pad.b+14);});
+  ctx.fillStyle='#2A7F7F';ctx.font='11px DM Sans';ctx.textAlign='left';ctx.fillText('Weight (lbs)',6,14);
+}
+
+// ══════════════════════════════════════════
+// RENDER VACCINATIONS
+// ══════════════════════════════════════════
+function renderVaccinations(c){
+  const given=new Set((c.vaccinations||[]).map(v=>(v.vaccine||'').trim().toLowerCase()));
+  const schedHTML=VAX_SCHED.map(col=>`<div class="vacc-col"><div class="vacc-age">${col.age}</div>${col.vaccines.map(v=>{const done=[...given].some(g=>g&&v&&g.toLowerCase().includes(v.split(' ')[0].toLowerCase()));return`<div class="vacc-pill ${done?'done':''}">${done?'✓ ':''}${v}</div>`;}).join('')}</div>`).join('');
+  const rows=(c.vaccinations||[]).map((v,i)=>`<tr>
+    <td>${v.date||'—'}</td><td>${v.vaccine||'—'}</td><td>${v.dose||'—'}</td>
+    <td>${v.site||'—'}</td><td>${v.provider||'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteRecord('vaccinations',${i})">✕</button></td>
+  </tr>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Vaccinations</h2><p>CDC/AAP immunization schedule for ages 6–18</p></div>
+    <div class="card"><div class="card-title">Schedule Overview</div><div class="vacc-grid">${schedHTML}</div></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Vaccination Log</div>
+        <button class="btn btn-primary btn-sm" onclick="openRecord('vaccinations')">+ Log Vaccine</button>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr><th>Date</th><th>Vaccine</th><th>Dose #</th><th>Site</th><th>Provider</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="tbl-empty">No vaccinations logged yet.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// RENDER MILESTONES / DEVELOPMENT
+// ══════════════════════════════════════════
+function renderMilestones(c){
+  const ages=Object.keys(MILESTONES);
+  if(!curMsAge) curMsAge=ages[0];
+  if(!c.milestones) c.milestones={};
+  if(!c.milestones[curMsAge]) c.milestones[curMsAge]={};
+  const ms=MILESTONES[curMsAge];
+  const ageBtns=ages.map(a=>`<button class="ms-age-btn ${curMsAge===a?'active':''}" onclick="selMsAge('${a}')">${a}</button>`).join('');
+  const domHTML=Object.entries(ms).map(([dom,items])=>`
+    <div class="ms-domain">
+      <div class="ms-domain-title">${dom}</div>
+      ${items.map(item=>{
+        const key=btoa(item.slice(0,20));
+        const checked=c.milestones[curMsAge][key]||false;
+        const flagged=c.milestones[curMsAge][key+'_flag']||false;
+        return `<div class="ms-item">
+          <input type="checkbox" class="ms-cb" ${checked?'checked':''} onchange="toggleMs('${key}',this.checked)">
+          <span class="ms-lbl ${flagged?'badge-danger':''}">${item}</span>
+          <div class="ms-concern">
+            <button class="ms-flag-btn" onclick="flagMs('${key}')" title="Flag concern">${flagged?'🚩':'⚑'}</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Developmental Milestones</h2><p>School-age and adolescent development benchmarks — check off achieved, flag concerns</p></div>
+    <div class="card">
+      <div class="card-title">Age Group</div>
+      <div class="ms-age-btns">${ageBtns}</div>
+      <p style="font-size:12px;color:var(--sub);margin-bottom:16px">Check off achieved milestones. Use 🚩 to flag a concern to discuss with your provider. Development varies — these are general guides, not rigid timelines.</p>
+      ${domHTML}
+      <div class="field" style="margin-top:16px"><label>Provider / Parent Notes for ${curMsAge}</label>
+        <textarea placeholder="Notes on development, referrals made, therapy, school support..." onchange="saveMsNote(this.value)">${c.milestones[curMsAge+'_note']||''}</textarea>
+      </div>
+    </div>`;
+}
+
+function selMsAge(a){ curMsAge=a; render(); }
+function toggleMs(key,val){ const c=child(); if(!c) return; if(!c.milestones) c.milestones={}; if(!c.milestones[curMsAge]) c.milestones[curMsAge]={}; c.milestones[curMsAge][key]=val; persist(); }
+function flagMs(key){ const c=child(); if(!c) return; if(!c.milestones) c.milestones={}; if(!c.milestones[curMsAge]) c.milestones[curMsAge]={}; c.milestones[curMsAge][key+'_flag']=!c.milestones[curMsAge][key+'_flag']; persist(); render(); }
+function saveMsNote(val){ const c=child(); if(!c) return; if(!c.milestones) c.milestones={}; c.milestones[curMsAge+'_note']=val; persist(); }
+
+// ══════════════════════════════════════════
+// RENDER MENTAL HEALTH
+// ══════════════════════════════════════════
+function renderMental(c){
+  const rows=(c.mental||[]).map((m,i)=>`<tr>
+    <td>${m.date||'—'}</td><td>${m.type||'—'}</td><td>${m.provider||'—'}</td>
+    <td>${m.result||'—'}</td><td>${m.notes||'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteRecord('mental',${i})">✕</button></td>
+  </tr>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Mental Health &amp; Behavioral Health</h2><p>Screenings, therapy, ADHD management, and emotional wellbeing records</p></div>
+    <div class="sdoh-banner">
+      <h3>🧠 Mental Health Guidance (AAP Bright Futures)</h3>
+      <p>Annual depression screening (PHQ-A) recommended beginning age 12. Anxiety screening (GAD-7) at 13+. Suicide risk assessment is standard of care for adolescents. If your child needs support: <b>988 Suicide &amp; Crisis Lifeline</b> — call or text <b>988</b>. Crisis Text Line: Text HOME to <b>741741</b>.</p>
+    </div>
+
+    <div class="adhd-card">
+      <h4>🧩 ADHD — Attention Deficit Hyperactivity Disorder</h4>
+      <div class="grid2">
+        <div class="field"><label>ADHD Diagnosis</label>
+          <select onchange="updateField('adhdDx',this.value)">
+            <option value="">Select</option>
+            <option ${c.adhdDx==='No diagnosis'?'selected':''}>No diagnosis</option>
+            <option ${c.adhdDx==='ADHD - Predominantly Inattentive'?'selected':''}>ADHD - Predominantly Inattentive</option>
+            <option ${c.adhdDx==='ADHD - Predominantly Hyperactive/Impulsive'?'selected':''}>ADHD - Predominantly Hyperactive/Impulsive</option>
+            <option ${c.adhdDx==='ADHD - Combined Presentation'?'selected':''}>ADHD - Combined Presentation</option>
+            <option ${c.adhdDx==='Suspected / Under Evaluation'?'selected':''}>Suspected / Under Evaluation</option>
+          </select>
+        </div>
+        <div class="field"><label>Diagnosis Date</label><input type="date" value="${c.adhdDxDate||''}" onchange="updateField('adhdDxDate',this.value)"></div>
+        <div class="field"><label>Diagnosing Provider</label><input value="${c.adhdDxProvider||''}" placeholder="Name / Specialty" onchange="updateField('adhdDxProvider',this.value)"></div>
+        <div class="field"><label>Current Managing Provider</label><input value="${c.adhdProvider||''}" placeholder="Pediatrician, Psychiatrist, Neurologist" onchange="updateField('adhdProvider',this.value)"></div>
+        <div class="field"><label>ADHD Medication(s)</label><input value="${c.adhdMed||''}" placeholder="e.g. Methylphenidate 10mg, Amphetamine 5mg" onchange="updateField('adhdMed',this.value)"></div>
+        <div class="field"><label>Medication Time &amp; Dose</label><input value="${c.adhdMedDose||''}" placeholder="e.g. 8am - 10mg, 12pm - 5mg" onchange="updateField('adhdMedDose',this.value)"></div>
+        <div class="field"><label>Medication Start Date</label><input type="date" value="${c.adhdMedStart||''}" onchange="updateField('adhdMedStart',this.value)"></div>
+        <div class="field"><label>Last Medication Review</label><input type="date" value="${c.adhdMedReview||''}" onchange="updateField('adhdMedReview',this.value)"></div>
+      </div>
+      <div class="field"><label>School Accommodations (IEP / 504)</label><textarea placeholder="Extended test time, preferential seating, reduced homework, check-in check-out, resource room..." onchange="updateField('adhdSchool',this.value)">${c.adhdSchool||''}</textarea></div>
+      <div class="field"><label>Behavioral Therapy / Coaching</label><input value="${c.adhdTherapy||''}" placeholder="Therapist name, type, frequency" onchange="updateField('adhdTherapy',this.value)"></div>
+      <div class="field"><label>ADHD Notes / Observations</label><textarea placeholder="Medication side effects, behavior at school/home, response to treatment, parent/teacher feedback..." onchange="updateField('adhdNotes',this.value)">${c.adhdNotes||''}</textarea></div>
+      <div style="background:rgba(255,255,255,.6);border-radius:8px;padding:10px 12px;font-size:12px;color:#2a4080;margin-top:4px">
+        <b>📋 ADHD Quick Facts (AAP Guidelines):</b> ADHD is diagnosed using DSM-5 criteria. AAP recommends behavioral therapy first-line for children 4–5; medication + behavioral therapy for ages 6+. Medications include stimulants (methylphenidate, amphetamines) and non-stimulants (atomoxetine, guanfacine). Regular monitoring includes height, weight, blood pressure, heart rate, and academic/behavioral functioning. Medication "holidays" should be discussed with the provider — do not stop medication without medical guidance.
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Mental Health &amp; Behavioral Visit Records</div>
+        <button class="btn btn-primary btn-sm" onclick="openRecord('mental')">+ Add Record</button>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr><th>Date</th><th>Type</th><th>Provider</th><th>Result / Score</th><th>Notes</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="tbl-empty">No mental health records. Add screenings, therapy visits, or behavioral health notes.</td></tr>'}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Current Mental Health Concerns / Diagnoses</div>
+      <div class="field"><textarea placeholder="Current diagnoses, medications for mental health, therapy schedule, school accommodations (504/IEP)..." onchange="updateField('mentalNotes',this.value)">${c.mentalNotes||''}</textarea></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// DENTAL & VISION
+// ══════════════════════════════════════════
+function renderDental(c){
+  const rows=(c.dental||[]).map((d,i)=>`<tr>
+    <td>${d.date||'—'}</td><td>${d.type||'—'}</td><td>${d.provider||'—'}</td><td>${d.result||'—'}</td><td>${d.notes||'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteRecord('dental',${i})">✕</button></td>
+  </tr>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Dental &amp; Vision</h2><p>Oral health and eye care records</p></div>
+    <div class="card" style="background:var(--mint)">
+      <b>🦷 Dental:</b> Biannual dental visits recommended. Orthodontia evaluations typically begin age 7+.<br>
+      <b>👁 Vision:</b> Annual vision screening at well-child visits. Glasses or contact lens prescription updates as needed. Learning and reading difficulties can be related to uncorrected vision problems.
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Dental &amp; Vision Visits</div>
+        <button class="btn btn-primary btn-sm" onclick="openRecord('dental')">+ Add Visit</button>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr><th>Date</th><th>Type</th><th>Provider</th><th>Result</th><th>Notes</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="tbl-empty">No dental or vision records yet.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// SPORTS PHYSICALS
+// ══════════════════════════════════════════
+function renderSports(c){
+  const cards=(c.sports||[]).map((s,i)=>`
+    <div class="card" style="margin-bottom:16px;border-left:4px solid var(--teal)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+            <b style="font-size:15px">${s.date||'—'}</b>
+            <span class="badge ${s.cleared==='Cleared'?'badge-success':s.cleared==='Not Cleared'?'badge-danger':'badge-warning'}">${s.cleared||'Pending'}</span>
+            ${s.sport?`<span style="font-size:13px;color:var(--sub)">🏃 ${s.sport}</span>`:''}
+          </div>
+          ${s.provider?`<div style="font-size:13px;margin-bottom:3px"><b>Provider:</b> ${s.provider}</div>`:''}
+          ${s.notes?`<div style="font-size:13px;color:var(--sub);margin-top:4px"><b>Notes / Restrictions:</b> ${s.notes}</div>`:''}
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteRecord('sports',${i})" style="flex-shrink:0;margin-left:12px">✕</button>
+      </div>
+
+      <!-- PPE Form Photos -->
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <div style="font-size:12px;font-weight:700;color:var(--teal2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">
+          📋 PPE Form — Signed Physical on File
+        </div>
+        ${(s.ppePhotos&&s.ppePhotos.length)
+          ? `<div class="photo-grid">${s.ppePhotos.map((p,pi)=>`
+              <div style="position:relative;display:inline-block">
+                <img src="${p}" class="photo-thumb" onclick="viewPhoto('${p}')" title="Click to view full size" style="width:100px;height:100px">
+                <button onclick="deleteSportsPhoto(${i},${pi},'ppePhotos')" style="position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center">✕</button>
+              </div>`).join('')}
+            </div>`
+          : `<div style="font-size:12px;color:var(--sub);font-style:italic;margin-bottom:8px">No PPE form uploaded yet — add a photo of the completed, signed form below.</div>`
+        }
+        <label class="photo-upload-btn" style="margin-top:6px;font-size:12px">
+          📷 Take / Upload PPE Form Photo
+          <input type="file" class="photo-upload-input" accept="image/*" capture="environment" multiple onchange="addSportsPhoto(event,${i},'ppePhotos')">
+        </label>
+        <div style="font-size:11px;color:var(--sub);margin-top:6px;line-height:1.5">
+          Tip: Photograph the completed signed form front and back. This serves as your backup copy — the original goes to school, your provider keeps one in the chart, and this is your personal record.
+        </div>
+      </div>
+
+      <!-- General Visit Photos -->
+      ${(s.photos&&s.photos.length)?`
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Additional Photos</div>
+          <div class="photo-grid">${s.photos.map((p,pi)=>`
+            <div style="position:relative;display:inline-block">
+              <img src="${p}" class="photo-thumb" onclick="viewPhoto('${p}')" style="width:88px;height:88px">
+              <button onclick="deleteSportsPhoto(${i},${pi},'photos')" style="position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center">✕</button>
+            </div>`).join('')}
+          </div>
+        </div>`:''}
+    </div>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header">
+      <h2>Sports Physicals</h2>
+      <p>Pre-participation evaluations, clearance records, and signed PPE form storage</p>
+    </div>
+
+    <div class="card" style="background:linear-gradient(135deg,var(--mint),#d0eded);border:1px solid var(--teal)">
+      <div style="font-size:13px;line-height:1.7">
+        <b>🏃 About Sports Physicals (PPE):</b> Required annually by most school athletic programs. Includes cardiovascular screening, musculoskeletal exam, concussion history review, and mental health assessment.<br><br>
+        <b>📋 About the PPE Form:</b> Your provider completes and signs the official form. The school keeps the original, your provider scans a copy to your chart — and now you can store a photo here as your personal backup. If the school loses the form or your child changes schools, you can print a copy directly from this tracker.
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;margin-top:4px">
+      <span style="font-size:13px;color:var(--sub)">${(c.sports||[]).length} physical(s) recorded</span>
+      <button class="btn btn-primary" onclick="openSportsRecord()">+ Add Sports Physical</button>
+    </div>
+
+    ${cards||`<div class="card" style="text-align:center;padding:50px;color:var(--sub)">
+      <div style="font-size:40px;margin-bottom:12px">🏃</div>
+      <b>No sports physicals recorded yet</b>
+      <p style="margin-top:6px;font-size:13px">Add a record for each annual PPE — and upload a photo of the signed form so you always have a backup copy.</p>
+    </div>`}`;
+}
+
+function openSportsRecord(){
+  photoRecordType='sports'; photoRecordPhotos=[]; let ppeForms=[];
+  document.getElementById('record-modal-title').textContent='Add Sports Physical';
+  document.getElementById('record-modal-body').innerHTML=`
+    <div class="grid2">
+      <div class="field"><label>Date</label><input type="date" id="rf-date"></div>
+      <div class="field"><label>Sport(s)</label><input id="rf-sport" placeholder="e.g. Basketball, Track, Football"></div>
+    </div>
+    <div class="field"><label>Provider / Clinic</label><input id="rf-provider" placeholder="Provider name"></div>
+    <div class="field"><label>Clearance Status</label>
+      <select id="rf-cleared">
+        <option value="">Select</option>
+        <option>Cleared</option>
+        <option>Cleared with Restrictions</option>
+        <option>Not Cleared</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes / Restrictions</label><textarea id="rf-notes" placeholder="Any restrictions, follow-up needed, conditions noted..."></textarea></div>
+
+    <div class="field" style="background:var(--mint);border:1px solid var(--teal);border-radius:8px;padding:14px;margin-top:8px">
+      <label style="color:var(--teal2);font-size:13px;font-weight:700;text-transform:none;letter-spacing:0">
+        📋 Upload Signed PPE Form
+      </label>
+      <p style="font-size:12px;color:var(--sub);margin:6px 0 10px">Photograph the completed signed sports physical form — front and back. This is your personal backup copy.</p>
+      <label class="photo-upload-btn">
+        📷 Take / Upload PPE Form Photo
+        <input type="file" class="photo-upload-input" accept="image/*" capture="environment" multiple onchange="loadSportsFormPhotos(event,'ppe')">
+      </label>
+      <div class="photo-grid" id="ppe-preview" style="margin-top:8px"></div>
+    </div>
+
+    <div class="field" style="margin-top:12px">
+      <label>Additional Photos (optional)</label>
+      <label class="photo-upload-btn">
+        📷 Add Other Photos
+        <input type="file" class="photo-upload-input" accept="image/*" multiple onchange="loadSportsFormPhotos(event,'other')">
+      </label>
+      <div class="photo-grid" id="other-preview" style="margin-top:8px"></div>
+    </div>`;
+
+  window._sportsPPE=[]; window._sportsOther=[];
+  openModal('record-modal');
+  document.querySelector('#record-modal .btn-primary').onclick=saveSportsRecord;
+}
+
+function loadSportsFormPhotos(evt,type){
+  const files=Array.from(evt.target.files);
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      if(type==='ppe') window._sportsPPE.push(e.target.result);
+      else window._sportsOther.push(e.target.result);
+      const prev=document.getElementById(type==='ppe'?'ppe-preview':'other-preview');
+      if(prev){
+        const arr=type==='ppe'?window._sportsPPE:window._sportsOther;
+        prev.innerHTML=arr.map(p=>`<img src="${p}" class="photo-thumb" style="width:80px;height:80px">`).join('');
+      }
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function saveSportsRecord(){
+  const c=child(); if(!c) return;
+  const rec={
+    date:document.getElementById('rf-date')?.value||'',
+    sport:document.getElementById('rf-sport')?.value||'',
+    provider:document.getElementById('rf-provider')?.value||'',
+    cleared:document.getElementById('rf-cleared')?.value||'',
+    notes:document.getElementById('rf-notes')?.value||'',
+    ppePhotos:window._sportsPPE||[],
+    photos:window._sportsOther||[],
+  };
+  if(!c.sports) c.sports=[];
+  c.sports.push(rec); persist();
+  closeModal('record-modal');
+  document.querySelector('#record-modal .btn-primary').onclick=saveRecord;
+  window._sportsPPE=[]; window._sportsOther=[];
+  render();
+}
+
+function addSportsPhoto(evt,idx,field){
+  const c=child(); if(!c||!c.sports[idx]) return;
+  if(!c.sports[idx][field]) c.sports[idx][field]=[];
+  const files=Array.from(evt.target.files);
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{ c.sports[idx][field].push(e.target.result); persist(); render(); };
+    reader.readAsDataURL(f);
+  });
+}
+
+function deleteSportsPhoto(sportIdx,photoIdx,field){
+  const c=child(); if(!c||!c.sports[sportIdx]) return;
+  c.sports[sportIdx][field].splice(photoIdx,1); persist(); render();
+}
+
+// ══════════════════════════════════════════
+// SICK / ACUTE VISITS
+// ══════════════════════════════════════════
+function renderSick(c){
+  const cards=(c.sick||[]).map((s,i)=>`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <b>${s.date||'—'}</b> &nbsp;<span class="badge badge-warning">${s.complaint||'—'}</span>
+          ${s.diagnosis?`<div style="margin-top:4px;font-size:13px"><b>Dx:</b> ${s.diagnosis}</div>`:''}
+          ${s.treatment?`<div style="font-size:13px"><b>Tx:</b> ${s.treatment}</div>`:''}
+          ${s.provider?`<div style="font-size:12px;color:var(--sub)">${s.provider}</div>`:''}
+          ${s.notes?`<div style="font-size:12px;color:var(--sub);margin-top:4px">${s.notes}</div>`:''}
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteRecord('sick',${i})">✕</button>
+      </div>
+      ${(s.photos&&s.photos.length)?`<div class="photo-grid">${s.photos.map(p=>`<img src="${p}" class="photo-thumb" onclick="viewPhoto('${p}')">`).join('')}</div>`:''}
+    </div>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Sick Visits</h2><p>Acute illness and injury visits — photos can be added to document rashes, wounds, or skin conditions</p></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:13px;color:var(--sub)">${(c.sick||[]).length} visit(s) recorded</span>
+      <button class="btn btn-primary btn-sm" onclick="openPhotoRecord('sick')">+ Add Sick Visit</button>
+    </div>
+    ${cards||'<div class="card" style="text-align:center;padding:40px;color:var(--sub)">No sick visits recorded yet.</div>'}`;
+}
+
+// ══════════════════════════════════════════
+// SPECIALISTS
+// ══════════════════════════════════════════
+function renderSpecialists(c){
+  const rows=(c.specialists||[]).map((s,i)=>`<tr>
+    <td>${s.date||'—'}</td><td>${s.specialty||'—'}</td><td>${s.provider||'—'}</td>
+    <td>${s.reason||'—'}</td><td>${s.outcome||'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteRecord('specialists',${i})">✕</button></td>
+  </tr>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Specialist Visits</h2><p>Referrals, specialty care, and therapy services</p></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Specialist Records</div>
+        <button class="btn btn-primary btn-sm" onclick="openRecord('specialists')">+ Add Specialist Visit</button>
+      </div>
+      <p style="font-size:12px;color:var(--sub);margin-bottom:12px">Include: pediatric subspecialists, mental health therapists, speech/OT/PT therapists, school counselors, neurologists, dermatologists, orthopedists, etc.</p>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr><th>Date</th><th>Specialty</th><th>Provider</th><th>Reason</th><th>Outcome / Plan</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="tbl-empty">No specialist visits recorded.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// MEDICATIONS
+// ══════════════════════════════════════════
+function renderMedications(c){
+  const rows=(c.medications||[]).map((m,i)=>`<tr>
+    <td>${m.name||'—'}</td><td>${m.dose||'—'}</td><td>${m.freq||'—'}</td>
+    <td>${m.reason||'—'}</td><td>${m.start||'—'}</td><td>${m.end||'—'}</td>
+    <td><span class="badge ${m.status==='Active'?'badge-success':m.status==='Discontinued'?'badge-danger':'badge-neutral'}">${m.status||'—'}</span></td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteRecord('medications',${i})">✕</button></td>
+  </tr>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Medications</h2><p>Current and past medications, vitamins, and supplements</p></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Medication Log</div>
+        <button class="btn btn-primary btn-sm" onclick="openRecord('medications')">+ Add Medication</button>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Reason</th><th>Start Date</th><th>End Date</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="8" class="tbl-empty">No medications recorded.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// ALLERGIES
+// ══════════════════════════════════════════
+function renderAllergies(c){
+  const rows=(c.allergies||[]).map((a,i)=>`<tr>
+    <td>${a.allergen||'—'}</td><td>${a.type||'—'}</td>
+    <td><span class="badge ${a.severity==='Severe'?'badge-danger':a.severity==='Moderate'?'badge-warning':'badge-success'}">${a.severity||'—'}</span></td>
+    <td>${a.reaction||'—'}</td><td>${a.treatment||'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteRecord('allergies',${i})">✕</button></td>
+  </tr>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Allergies</h2><p>Food, medication, environmental, and other allergies</p></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Allergy List</div>
+        <button class="btn btn-primary btn-sm" onclick="openRecord('allergies')">+ Add Allergy</button>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr><th>Allergen</th><th>Type</th><th>Severity</th><th>Reaction</th><th>Treatment / Epi-pen</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="tbl-empty">No allergies recorded. Add NKDA (no known drug allergies) if applicable.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// URGENT / ER
+// ══════════════════════════════════════════
+function renderUrgent(c){
+  const cards=(c.urgent||[]).map((u,i)=>`
+    <div class="card" style="margin-bottom:14px;border-left:4px solid var(--danger)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <b>${u.date||'—'}</b> &nbsp;<span class="badge badge-danger">${u.type||'Visit'}</span>
+          ${u.facility?`<div style="font-size:13px;margin-top:4px"><b>Facility:</b> ${u.facility}</div>`:''}
+          ${u.complaint?`<div style="font-size:13px"><b>Complaint:</b> ${u.complaint}</div>`:''}
+          ${u.diagnosis?`<div style="font-size:13px"><b>Dx:</b> ${u.diagnosis}</div>`:''}
+          ${u.outcome?`<div style="font-size:12px;color:var(--sub);margin-top:4px">${u.outcome}</div>`:''}
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteRecord('urgent',${i})">✕</button>
+      </div>
+      ${(u.photos&&u.photos.length)?`<div class="photo-grid">${u.photos.map(p=>`<img src="${p}" class="photo-thumb" onclick="viewPhoto('${p}')">`).join('')}</div>`:''}
+    </div>`).join('');
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Urgent &amp; ER Visits</h2><p>Urgent care, emergency department, and hospitalization records — add photos of rashes, injuries, wounds</p></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:13px;color:var(--sub)">${(c.urgent||[]).length} visit(s) recorded</span>
+      <button class="btn btn-danger btn-sm" onclick="openPhotoRecord('urgent')">+ Add Urgent / ER Visit</button>
+    </div>
+    ${cards||'<div class="card" style="text-align:center;padding:40px;color:var(--sub)">No urgent or ER visits recorded.</div>'}`;
+}
+
+// ══════════════════════════════════════════
+// DOCUMENTS
+// ══════════════════════════════════════════
+function renderDocuments(c){
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>Documents &amp; Notes</h2><p>School forms, care plans, records, and important notes</p></div>
+
+    <div class="card" style="border-left:4px solid var(--teal)">
+      <div class="card-title">📱 How To Use This Tracker</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:13px;line-height:1.7">
+        <div>
+          <b style="color:var(--teal2)">Adding Records</b><br>
+          Use the sidebar to navigate to any section. Click <b>+ Add</b> to log a new visit, measurement, vaccine, or medication. All records save automatically to your device.
+        </div>
+        <div>
+          <b style="color:var(--teal2)">Taking Photos</b><br>
+          Any section with a 📷 button supports photos. On a <b>phone or tablet</b>, tapping the button opens your camera directly — no extra steps. On a desktop, it opens your file browser to upload an existing image.
+        </div>
+        <div>
+          <b style="color:var(--teal2)">📋 Sports Physical / PPE Form</b><br>
+          When your child's sports physical is complete and signed, open <b>Sports Physicals</b> and tap <b>"Take / Upload PPE Form Photo."</b> On your phone this opens the rear camera instantly — photograph the front and back of the signed form right at the office before you leave. Your provider keeps one in the chart, the school keeps the original, and <b>this is your personal backup copy.</b> If the school loses it or your child transfers, you can reprint from here anytime.
+        </div>
+        <div>
+          <b style="color:var(--teal2)">Sick &amp; ER Visit Photos</b><br>
+          The Sick Visits and Urgent/ER sections also support photos. Use these to document rashes, wounds, skin conditions, or injuries at the time of the visit — gives your provider a visual record even if the condition changes before the appointment.
+        </div>
+        <div>
+          <b style="color:var(--teal2)">Printing &amp; Sharing</b><br>
+          Press <b>Ctrl+P</b> (Windows) or <b>Cmd+P</b> (Mac) and select "Save as PDF" to create a printable copy of the full record. Perfect for handing off to a new provider, foster placement, or school.
+        </div>
+        <div>
+          <b style="color:var(--teal2)">Foster &amp; Kinship Care</b><br>
+          Add a new child profile for each child in your care. At each placement transition, export the record using the <b>⬇ Export</b> button at the top and save the file securely. A new caregiver can import or print from the file.
+        </div>
+        <div>
+          <b style="color:var(--teal2)">Multiple Children</b><br>
+          Click the child selector at the top of the screen to switch between children or add a new child. Each child has a completely separate record.
+        </div>
+        <div>
+          <b style="color:var(--teal2)">Exporting Data</b><br>
+          Use the <b>⬇ Export</b> button to download a backup file (JSON format) of all records for the selected child. Store it somewhere safe — cloud storage, email to yourself, or a USB drive.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Important Notes &amp; Documents</div>
+      <div class="field"><label>Medical Records Location</label><input value="${c.recordsLocation||''}" placeholder="Where are prior records stored?" onchange="updateField('recordsLocation',this.value)"></div>
+      <div class="field"><label>IEP / 504 Plan</label><textarea placeholder="IEP goals, 504 accommodations, services received..." onchange="updateField('iep',this.value)">${c.iep||''}</textarea></div>
+      <div class="field"><label>Care Team Contacts</label><textarea placeholder="Names, roles, phone numbers of all care team members..." onchange="updateField('careTeam',this.value)">${c.careTeam||''}</textarea></div>
+      <div class="field"><label>Court / Legal Notes (Foster Care)</label><textarea placeholder="Court dates, case worker info, legal guardian notes..." onchange="updateField('legalNotes',this.value)">${c.legalNotes||''}</textarea></div>
+      <div class="field"><label>Transition Plan (to Adult Care)</label><textarea placeholder="Timeline for transitioning to adult care, adult provider identified..." onchange="updateField('transitionPlan',this.value)">${c.transitionPlan||''}</textarea></div>
+      <div class="field"><label>Additional Notes</label><textarea rows="5" placeholder="Any additional important information..." onchange="updateField('extraNotes',this.value)">${c.extraNotes||''}</textarea></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// RECORD MODALS
+// ══════════════════════════════════════════
+const RECORD_FORMS={
+  growth:{title:'Add Growth Measurement',fields:[
+    {key:'date',label:'Date',type:'date'},{key:'height',label:'Height (inches)',type:'number',ph:'e.g. 52'},
+    {key:'weight',label:'Weight (lbs)',type:'number',ph:'e.g. 88'},{key:'bp',label:'Blood Pressure',ph:'e.g. 110/70'},
+    {key:'hr',label:'Heart Rate (bpm)',type:'number'},{key:'notes',label:'Notes',type:'textarea'}
+  ]},
+  vaccinations:{title:'Log Vaccination',fields:[
+    {key:'date',label:'Date',type:'date'},{key:'vaccine',label:'Vaccine Name',ph:'e.g. Tdap'},
+    {key:'dose',label:'Dose Number',ph:'e.g. 1st'},{key:'site',label:'Injection Site',ph:'e.g. Left arm'},
+    {key:'provider',label:'Provider / Clinic'}
+  ]},
+  sick:{title:'Add Sick Visit',fields:[
+    {key:'date',label:'Date',type:'date'},{key:'complaint',label:'Chief Complaint',ph:'e.g. Fever, sore throat'},
+    {key:'provider',label:'Provider / Clinic'},{key:'diagnosis',label:'Diagnosis'},
+    {key:'treatment',label:'Treatment / Prescription'},{key:'notes',label:'Notes',type:'textarea'}
+  ]},
+  specialists:{title:'Add Specialist Visit',fields:[
+    {key:'date',label:'Date',type:'date'},{key:'specialty',label:'Specialty',ph:'e.g. Cardiology, Speech Therapy'},
+    {key:'provider',label:'Provider Name'},{key:'reason',label:'Reason for Visit'},
+    {key:'outcome',label:'Outcome / Recommendations',type:'textarea'}
+  ]},
+  medications:{title:'Add Medication',fields:[
+    {key:'name',label:'Medication Name'},{key:'dose',label:'Dose',ph:'e.g. 250mg'},
+    {key:'freq',label:'Frequency',ph:'e.g. Twice daily'},{key:'reason',label:'Reason / Diagnosis'},
+    {key:'start',label:'Start Date',type:'date'},{key:'end',label:'End Date',type:'date'},
+    {key:'status',label:'Status',type:'select',opts:['Active','Completed','Discontinued']}
+  ]},
+  allergies:{title:'Add Allergy',fields:[
+    {key:'allergen',label:'Allergen',ph:'e.g. Penicillin, Peanuts'},
+    {key:'type',label:'Type',type:'select',opts:['Drug','Food','Environmental','Insect','Latex','Other']},
+    {key:'severity',label:'Severity',type:'select',opts:['Mild','Moderate','Severe']},
+    {key:'reaction',label:'Reaction / Symptoms'},{key:'treatment',label:'Treatment / Epi-pen'}
+  ]},
+  urgent:{title:'Add Urgent / ER Visit',fields:[
+    {key:'date',label:'Date',type:'date'},
+    {key:'type',label:'Visit Type',type:'select',opts:['Urgent Care','Emergency Room','Hospitalization','Other']},
+    {key:'facility',label:'Facility Name'},{key:'complaint',label:'Chief Complaint'},
+    {key:'diagnosis',label:'Diagnosis'},{key:'outcome',label:'Outcome / Discharge Plan',type:'textarea'}
+  ]},
+  mental:{title:'Add Mental Health Record',fields:[
+    {key:'date',label:'Date',type:'date'},
+    {key:'type',label:'Type',type:'select',opts:['Depression Screen (PHQ-A)','Anxiety Screen (GAD-7)','Suicide Risk Assessment','ADHD Evaluation','ADHD Follow-up','Therapy Session','Psychiatry Visit','Behavioral Health Visit','Neuropsychological Testing','School Counselor Visit','Other']},
+    {key:'provider',label:'Provider / Therapist'},{key:'result',label:'Result / Score'},
+    {key:'notes',label:'Notes / Plan',type:'textarea'}
+  ]},
+  dental:{title:'Add Dental / Vision Visit',fields:[
+    {key:'date',label:'Date',type:'date'},
+    {key:'type',label:'Type',type:'select',opts:['Dental Cleaning','Dental X-ray','Orthodontia','Vision Screening','Eye Exam','Glasses/Contacts Rx','Other']},
+    {key:'provider',label:'Provider'},{key:'result',label:'Result / Findings'},
+    {key:'notes',label:'Notes',type:'textarea'}
+  ]},
+  // Sports physicals now handled by openSportsRecord() with dedicated PPE photo upload
+};
+
+let tempRecord={};
+function openRecord(type){
+  recordType=type; tempRecord={};
+  const form=RECORD_FORMS[type]; if(!form) return;
+  document.getElementById('record-modal-title').textContent=form.title;
+  document.getElementById('record-modal-body').innerHTML=form.fields.map(f=>`
+    <div class="field">
+      <label>${f.label}</label>
+      ${f.type==='textarea'?`<textarea id="rf-${f.key}" placeholder="${f.ph||''}"></textarea>`:
+        f.type==='select'?`<select id="rf-${f.key}"><option value="">Select</option>${(f.opts||[]).map(o=>`<option>${o}</option>`).join('')}</select>`:
+        `<input id="rf-${f.key}" type="${f.type||'text'}" placeholder="${f.ph||''}">`}
+    </div>`).join('');
+  openModal('record-modal');
+}
+
+function saveRecord(){
+  const c=child(); if(!c||!recordType) return;
+  const form=RECORD_FORMS[recordType]; if(!form) return;
+  const rec={};
+  form.fields.forEach(f=>{ const el=document.getElementById('rf-'+f.key); if(el) rec[f.key]=el.value; });
+  if(!c[recordType]) c[recordType]=[];
+  c[recordType].push(rec); persist();
+  closeModal('record-modal'); render();
+}
+
+function deleteRecord(type,idx){
+  if(!confirm('Delete this record?')) return;
+  const c=child(); if(!c) return;
+  c[type].splice(idx,1); persist(); render();
+}
+
+// ══════════════════════════════════════════
+// QUICK REFERENCE / SAFETY
+// ══════════════════════════════════════════
+function renderQuickRef(c){
+  const wt=parseFloat((c.growth&&c.growth.length?c.growth[c.growth.length-1].weight:null)||0);
+  const wtKg=(wt/2.205).toFixed(1);
+  // Dosing only shown if weight on file; max doses per label
+  const tylenolDose=wt?Math.min(Math.round(wt/2.205*15),1000)+' mg (max 1000mg/dose)':'Enter weight in Growth section for dosing';
+  const ibuprofenDose=wt?Math.min(Math.round(wt/2.205*10),800)+' mg (max 800mg/dose)':'Enter weight in Growth section for dosing';
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="page-header"><h2>🚑 Quick Reference &amp; Safety</h2><p>Emergency contacts, fever/pain management dosing, and poison control — print this page and keep it accessible</p></div>
+
+    <div class="poison-pill">☎️ Poison Control Center — 1-800-222-1222 (US, 24/7) &nbsp;|&nbsp; Emergency: 911</div>
+
+    <div class="grid2">
+      <div>
+        <div class="card" style="border-left:4px solid var(--danger)">
+          <div class="card-title">🆘 Emergency Contacts</div>
+          <div class="field"><label>Child's Name</label><input value="${c.name||''}" readonly style="background:var(--cream)"></div>
+          <div class="field"><label>Primary Care Provider</label><input value="${c.provider||''}" placeholder="Provider name" readonly style="background:var(--cream)"></div>
+          <div class="field"><label>Provider Phone</label><input value="${c.phone||''}" placeholder="Phone" readonly style="background:var(--cream)"></div>
+          <div class="field"><label>Guardian / Parent</label><input value="${c.guardian||''}" readonly style="background:var(--cream)"></div>
+          <div class="field"><label>Emergency Contact Name</label><input value="${c.emergContact||''}" placeholder="Name" onchange="updateField('emergContact',this.value)"></div>
+          <div class="field"><label>Emergency Contact Phone</label><input value="${c.emergPhone||''}" placeholder="Phone" onchange="updateField('emergPhone',this.value)"></div>
+          <div class="field"><label>Nearest Hospital / ER</label><input value="${c.nearestER||''}" placeholder="Hospital name" onchange="updateField('nearestER',this.value)"></div>
+          <div class="field"><label>Insurance / Medicaid ID</label><input value="${c.insurance||''}" readonly style="background:var(--cream)"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-left:4px solid var(--gold)">
+          <div class="card-title">💊 Fever &amp; Pain Dosing Guide</div>
+          <p style="font-size:12px;color:var(--sub);margin-bottom:12px">Based on current weight: <b>${wt?wt+' lbs ('+wtKg+' kg)':'Not on file'}</b>. Always use the measuring device included with the medication. <b>Never give aspirin to children.</b></p>
+
+          <div class="qr-section">
+            <div class="qr-title">🟡 Acetaminophen (Tylenol) — every 4–6 hours, max 5 doses/24hr</div>
+            <div class="qr-body">
+              <table>
+                <thead><tr><th>Age / Weight</th><th>Dose</th><th>Children's Liquid (160mg/5ml)</th><th>Adult Tablet (325mg)</th></tr></thead>
+                <tbody>
+                  <tr><td>6–11 yr (48–95 lbs)</td><td>320–480 mg</td><td>10–15 ml</td><td>1 tablet</td></tr>
+                  <tr><td>12+ yr / Adults (96+ lbs)</td><td>480–1000 mg</td><td>15 ml or tablet form</td><td>1–2 tablets</td></tr>
+                  ${wt?`<tr style="background:#fffbe6"><td><b>${c.name||'Child'} (${wt} lbs)</b></td><td><b>${tylenolDose}</b></td><td colspan="2"><b>Calculate based on dose above</b></td></tr>`:''}
+                </tbody>
+              </table>
+              <div class="qr-note">⚠️ Do NOT exceed 5 doses in 24 hours. Do NOT combine with other products containing acetaminophen. Do NOT use in children with liver disease without provider guidance.</div>
+            </div>
+          </div>
+
+          <div class="qr-section">
+            <div class="qr-title">🟠 Ibuprofen (Advil/Motrin) — every 6–8 hours, max 4 doses/24hr</div>
+            <div class="qr-body">
+              <table>
+                <thead><tr><th>Age / Weight</th><th>Dose (10mg/kg)</th><th>Children's Liquid (100mg/5ml)</th><th>Adult Tablet (200mg)</th></tr></thead>
+                <tbody>
+                  <tr><td>6–11 yr (48–77 lbs)</td><td>200–300 mg</td><td>10–15 ml</td><td>1 tablet</td></tr>
+                  <tr><td>12+ yr (78+ lbs)</td><td>400 mg</td><td>20 ml</td><td>2 tablets</td></tr>
+                  ${wt?`<tr style="background:#fff3e0"><td><b>${c.name||'Child'} (${wt} lbs)</b></td><td><b>${ibuprofenDose}</b></td><td colspan="2"><b>Calculate based on dose above</b></td></tr>`:''}
+                </tbody>
+              </table>
+              <div class="qr-note">⚠️ Do NOT give ibuprofen to children under 6 months. Do NOT give if dehydrated, vomiting, or with known kidney problems. Do NOT combine with other NSAIDs. Always give with food or milk.</div>
+            </div>
+          </div>
+
+          <div class="qr-section">
+            <div class="qr-title">🌡️ When to Call the Doctor / Go to ER</div>
+            <div class="qr-body">
+              <table>
+                <thead><tr><th>Situation</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>Fever &gt;104°F (40°C)</td><td>Call provider same day</td></tr>
+                  <tr><td>Fever lasting &gt;3 days</td><td>Call provider</td></tr>
+                  <tr><td>Stiff neck with fever</td><td>🚨 Go to ER immediately</td></tr>
+                  <tr><td>Difficulty breathing</td><td>🚨 Call 911</td></tr>
+                  <tr><td>Seizure (first time)</td><td>🚨 Call 911</td></tr>
+                  <tr><td>Unresponsive or confused</td><td>🚨 Call 911</td></tr>
+                  <tr><td>Severe allergic reaction</td><td>🚨 Use Epi-pen, Call 911</td></tr>
+                  <tr><td>Suspected ingestion/poisoning</td><td>☎️ Poison Control: 1-800-222-1222</td></tr>
+                  <tr><td>Severe headache (worst of life)</td><td>🚨 Go to ER</td></tr>
+                  <tr><td>Self-harm or suicidal thoughts</td><td>☎️ 988 or Go to ER</td></tr>
+                  <tr><td>Sports concussion symptoms</td><td>Remove from play, call provider</td></tr>
+                  <tr><td>Chest pain with exertion</td><td>🚨 Go to ER</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🩹 Common Conditions Quick Guide</div>
+      <div class="grid2">
+        <div>
+          <div style="font-size:13px;margin-bottom:10px"><b>Fever</b><br>Use acetaminophen or ibuprofen per dosing guide. Encourage fluids. Do not bundle in heavy clothing. Fever is not harmful up to 104°F — the underlying illness matters more than the number. Sponge baths are no longer recommended.</div>
+          <div style="font-size:13px;margin-bottom:10px"><b>Sore Throat</b><br>If fever + sore throat without cold symptoms → test for Strep. Strep requires antibiotics. Most sore throats are viral and do not need antibiotics. Throat lozenges, salt water gargles (for teens), and warm fluids help.</div>
+          <div style="font-size:13px;margin-bottom:10px"><b>Stomach Ache / Vomiting</b><br>Clear fluids first (water, Pedialyte). Avoid dairy for 24 hours after vomiting. BRAT diet (bananas, rice, applesauce, toast) can help. Call provider if vomiting &gt;24 hours, blood in stool, or signs of dehydration (no urine in 8 hours, dry mouth, no tears).</div>
+        </div>
+        <div>
+          <div style="font-size:13px;margin-bottom:10px"><b>Rash</b><br>Take a photo to show the provider. Note location, when it started, if it's itchy, raised, spreading, or accompanied by fever. Hives + difficulty breathing = call 911. Rash after new medication = call provider today.</div>
+          <div style="font-size:13px;margin-bottom:10px"><b>Head Lice</b><br>Contagious but not dangerous. OTC treatments (permethrin, pyrethrin) available. Nit comb after treatment. Wash bedding and clothing in hot water. Notify school. Not a reason to miss school per AAP.</div>
+          <div style="font-size:13px;margin-bottom:10px"><b>Cuts &amp; Wounds</b><br>Apply firm pressure for 10 minutes. Clean with water. Use antibiotic ointment and bandage. Go to ER if: wound is gaping, won't stop bleeding, on face/joint, caused by animal bite, or child is not up to date on Tetanus.</div>
+          <div style="font-size:13px"><b>Concussion</b><br>Symptoms: headache, confusion, dizziness, nausea, light sensitivity, memory issues. Remove from activity immediately. See provider within 1–2 days. No return to sports until cleared by provider.</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// PHOTO RECORD MODAL (for sick + urgent with photo upload)
+// ══════════════════════════════════════════
+let photoRecordType=null, photoRecordPhotos=[];
+function openPhotoRecord(type){
+  photoRecordType=type; photoRecordPhotos=[];
+  const isSick=type==='sick';
+  document.getElementById('record-modal-title').textContent=isSick?'Add Sick Visit':'Add Urgent / ER Visit';
+  document.getElementById('record-modal-body').innerHTML=`
+    <div class="field"><label>Date</label><input type="date" id="rf-date"></div>
+    ${isSick?`
+    <div class="field"><label>Chief Complaint</label><input id="rf-complaint" placeholder="e.g. Fever, rash, sore throat"></div>
+    <div class="field"><label>Provider / Clinic</label><input id="rf-provider" placeholder="Provider name"></div>
+    <div class="field"><label>Diagnosis</label><input id="rf-diagnosis" placeholder="Diagnosis if given"></div>
+    <div class="field"><label>Treatment / Prescription</label><input id="rf-treatment" placeholder="Medications, instructions"></div>
+    `:`
+    <div class="field"><label>Visit Type</label><select id="rf-type"><option value="">Select</option><option>Urgent Care</option><option>Emergency Room</option><option>Hospitalization</option><option>Other</option></select></div>
+    <div class="field"><label>Facility Name</label><input id="rf-facility" placeholder="Facility name"></div>
+    <div class="field"><label>Chief Complaint</label><input id="rf-complaint" placeholder="Reason for visit"></div>
+    <div class="field"><label>Diagnosis</label><input id="rf-diagnosis" placeholder="Diagnosis"></div>
+    <div class="field"><label>Outcome / Discharge Plan</label><textarea id="rf-outcome" placeholder="Discharge instructions, follow-up needed..."></textarea></div>
+    `}
+    <div class="field"><label>Notes</label><textarea id="rf-notes" placeholder="Additional notes..."></textarea></div>
+    <div class="field">
+      <label>📷 Photos (rash, wound, injury, etc.)</label>
+      <label class="photo-upload-btn">📷 Add Photos<input type="file" class="photo-upload-input" accept="image/*" multiple onchange="loadPhotoRecordImgs(event)"></label>
+      <div class="photo-grid" id="modal-photo-preview"></div>
+    </div>`;
+  openModal('record-modal');
+  // Override save button
+  document.querySelector('#record-modal .btn-primary').onclick=savePhotoRecord;
+}
+
+function loadPhotoRecordImgs(evt){
+  const files=Array.from(evt.target.files);
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      photoRecordPhotos.push(e.target.result);
+      const prev=document.getElementById('modal-photo-preview');
+      if(prev) prev.innerHTML=photoRecordPhotos.map(p=>`<img src="${p}" class="photo-thumb">`).join('');
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function savePhotoRecord(){
+  const c=child(); if(!c||!photoRecordType) return;
+  const rec={};
+  ['date','complaint','provider','diagnosis','treatment','notes','type','facility','outcome'].forEach(k=>{
+    const el=document.getElementById('rf-'+k); if(el) rec[k]=el.value;
+  });
+  rec.photos=photoRecordPhotos;
+  if(!c[photoRecordType]) c[photoRecordType]=[];
+  c[photoRecordType].push(rec); persist();
+  closeModal('record-modal');
+  // restore default save
+  document.querySelector('#record-modal .btn-primary').onclick=saveRecord;
+  render();
+}
+
+// ══════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════
+function exportData(){
+  const c=child(); if(!c){ alert('Please select a child first.'); return; }
+  const blob=new Blob([JSON.stringify(c,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(c.name||'child').replace(/\s/g,'_')+'_health_record.json';
+  a.click();
+}
+
+// ══════════════════════════════════════════
+// DISCLAIMER
+// ══════════════════════════════════════════
+function acceptDisclaimer(){
+  try{ localStorage.setItem('wc618_disclaimer','accepted'); }catch(e){}
+  closeModal('disclaimer-modal');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+// Show disclaimer on first visit
+try{
+  if(localStorage.getItem('wc618_disclaimer')!=='accepted'){
+    openModal('disclaimer-modal');
+  }
+}catch(e){ openModal('disclaimer-modal'); }
+
+if(db.activeId && db.children.find(c=>c.id===db.activeId)){
+  const c=child();
+  const i=db.children.indexOf(c);
+  const init=(c.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('active-avatar').textContent=init;
+  document.getElementById('active-avatar').style.background=COLORS[i%COLORS.length];
+  document.getElementById('active-label').textContent=c.name||'Child';
+  render();
+}
+</script>
+</body>
+</html>
