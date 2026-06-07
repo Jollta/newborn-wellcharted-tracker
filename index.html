@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -221,14 +222,6 @@ section { padding: 80px 60px; }
   font-size: .65rem; font-weight: 700; letter-spacing: 1px;
   padding: 3px 10px; border-radius: 20px;
 }
-.product-card.coming-soon { opacity: .7; }
-.product-card.coming-soon::before {
-  content: 'COMING SOON';
-  position: absolute; top: 16px; right: 16px;
-  background: var(--navy-lt); color: var(--navy);
-  font-size: .62rem; font-weight: 700; letter-spacing: 1px;
-  padding: 3px 10px; border-radius: 20px;
-}
 .product-icon { font-size: 2rem; margin-bottom: 14px; }
 .product-type { font-size: .7rem; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--slate); margin-bottom: 6px; }
 .product-name { font-family: 'Lora', serif; font-size: 1.05rem; font-weight: 600; color: var(--navy); margin-bottom: 10px; line-height: 1.3; }
@@ -245,7 +238,6 @@ section { padding: 80px 60px; }
 .btn-buy:hover { background: var(--navy-dk); transform: translateY(-1px); }
 .btn-buy.gold-buy { background: var(--gold); color: var(--navy-dk); }
 .btn-buy.gold-buy:hover { background: #dbb95a; }
-.btn-soon { background: var(--navy-lt); color: var(--slate); padding: 8px 18px; border-radius: 20px; font-size: .78rem; font-weight: 500; cursor: default; }
 
 /* BUNDLE CARD */
 .bundle-card {
@@ -287,7 +279,6 @@ section { padding: 80px 60px; }
 .step-icon { font-size: 1.6rem; margin-bottom: 10px; }
 .step h4 { font-family: 'Lora', serif; font-size: .95rem; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
 .step p { font-size: .8rem; color: var(--slate); line-height: 1.6; }
-.step-connector { display: none; }
 
 /* ── FEATURES ── */
 .features { background: var(--cream); }
@@ -530,7 +521,6 @@ footer .footer-disc { font-size: .72rem; opacity: .5; max-width: 700px; margin: 
         </div>
       </div>
 
-
       <!-- TRACKERS -->
       <div class="product-card fade-in">
         <div class="product-icon">👶</div>
@@ -588,17 +578,18 @@ footer .footer-disc { font-size: .72rem; opacity: .5; max-width: 700px; margin: 
         </div>
       </div>
 
-      <div class="product-card coming-soon fade-in">
+      <!-- HOW-TO GUIDES — NOW LIVE -->
+      <div class="product-card fade-in">
         <div class="product-icon">📄</div>
-        <div class="product-type">How-To Guide</div>
+        <div class="product-type">How-To Guides · Free</div>
         <div class="product-name">How to Use Your WellCharted Tracker</div>
-        <p class="product-desc">Step-by-step PDF walkthrough of each tracker with screenshots, tips, and a quick-start checklist. Takes the guesswork out of getting organized.</p>
-        <div class="product-footer">
-          <div class="product-price" style="color:var(--slate)">Coming Soon</div>
-          <span class="btn-soon">Notify Me</span>
+        <p class="product-desc">Step-by-step walkthroughs for each tracker with tips and quick-start checklists. Takes the guesswork out of getting organized.</p>
+        <div class="product-footer" style="flex-direction:column;align-items:flex-start;gap:8px;">
+          <a href="/wellcharted-how-to-newborn.html" target="_blank" class="btn-buy" style="font-size:.72rem;padding:6px 14px;">👶 Newborn to Age 5 →</a>
+          <a href="/wellcharted-how-to-6-18.html" target="_blank" class="btn-buy" style="font-size:.72rem;padding:6px 14px;">🧒 Ages 6–18 →</a>
+          <a href="/wellcharted-how-to-guide.html" target="_blank" class="btn-buy" style="font-size:.72rem;padding:6px 14px;">🩺 Adult Tracker →</a>
         </div>
       </div>
-
 
     </div>
   </div>
