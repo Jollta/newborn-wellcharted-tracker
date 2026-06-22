@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Health Confidence Tracker · WellCharted.health</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy:#2d4a8a; --navy-dk:#1e3366; --navy-lt:#e8edf8;
+    --amber:#f0a500; --amber-lt:#fff8e6;
+    --rose:#e05c5c; --rose-lt:#fdf0f0;
+    --green:#3a9e7e; --green-lt:#edf8f4;
+    --slate:#6b7a99; --bg:#f4f5f8; --card:#ffffff;
+    --text:#1e2a3b; --muted:#9ba8c0; --border:#dde2ef;
+    --radius:12px; --shadow:0 2px 12px rgba(45,74,138,.08);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
+
+  /* DISCLAIMER */
+  .disc{background:#fff8e6;border-bottom:2px solid var(--amber);padding:10px 16px;display:flex;align-items:flex-start;gap:10px;font-size:.8rem;color:#7a5800}
+  .disc strong{display:block;font-size:.83rem;margin-bottom:2px}
+  .disc-x{margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.2rem;color:#b37800;flex-shrink:0;padding:2px 6px}
+
+  /* HEADER */
+  header{background:linear-gradient(135deg,var(--navy-dk),var(--navy));color:#fff;padding:18px 28px 0;position:sticky;top:0;z-index:1000;box-shadow:0 4px 24px rgba(30,51,102,.25)}
+  .hdr-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .brand h1{font-family:'Lora',serif;font-size:1.55rem;font-weight:600;line-height:1.2;flex:1}
+  .brand p{font-size:.72rem;opacity:.6;text-transform:uppercase;letter-spacing:.5px}
+  .print-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:.75rem;color:#fff;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;flex-shrink:0}
+
+  /* DESKTOP HORIZONTAL TAB BAR */
+  .desktop-nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding-top:4px}
+  .desktop-nav::-webkit-scrollbar{display:none}
+  .desktop-nav-wrap{display:flex;align-items:flex-end;gap:0;position:relative}
+  .nav-scroll-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;flex-shrink:0;cursor:pointer;font-size:1rem;align-self:stretch;display:flex;align-items:center;justify-content:center}
+  .nav-scroll-btn:hover{background:rgba(255,255,255,.28)}
+  .dtab{display:flex;align-items:center;gap:5px;padding:8px 12px;border-radius:8px 8px 0 0;background:transparent;border:none;color:rgba(255,255,255,.65);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s;-webkit-tap-highlight-color:transparent}
+  .dtab:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9)}
+  .dtab.active{background:var(--bg);color:var(--navy);font-weight:700}
+
+  /* MOBILE MENU TOGGLE — hidden on desktop */
+  .menu-toggle{display:none;background:var(--amber);border:none;border-radius:20px;color:var(--navy-dk);padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif;align-items:center;gap:5px}
+
+  /* MOBILE NAV DRAWER — hidden by default */
+  .nav-drawer{display:none;flex-direction:column;padding:8px 12px 14px;gap:4px;background:var(--navy-dk);border-top:1px solid rgba(255,255,255,.1);max-height:62vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .nav-drawer.open{display:flex}
+  .nav-drawer-hint{font-size:.74rem;color:rgba(255,255,255,.7);padding:4px 10px 8px;line-height:1.45;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:4px}
+  .nav-drawer-hint strong{color:var(--amber)}
+  .nav-tab{display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:10px;background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.85);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;text-align:left;width:100%;transition:background .15s;-webkit-tap-highlight-color:transparent}
+  .nav-tab:hover,.nav-tab:active{background:rgba(255,255,255,.15)}
+  .nav-tab.active{background:rgba(255,255,255,.2);color:#fff;font-weight:700;border-left:3px solid var(--amber)}
+  .nav-tab-icon{font-size:1.1rem;width:24px;flex-shrink:0}
+
+  /* CURRENT TAB INDICATOR — mobile only */
+  .current-tab-bar{display:none;background:var(--navy);padding:8px 16px;align-items:center;justify-content:space-between;border-bottom:2px solid var(--amber)}
+  .current-tab-label{color:#fff;font-size:.88rem;font-weight:600}
+  .current-tab-hint{color:rgba(255,255,255,.5);font-size:.72rem}
+
+  /* RESPONSIVE — switch at 768px */
+  @media(max-width:768px){
+    header{padding:10px 14px 0}
+    .hdr-row{margin-bottom:8px}
+    .brand h1{font-size:1rem}
+    .brand p{display:none}
+    .desktop-nav-wrap{display:none}
+    .menu-toggle{display:flex}
+    .current-tab-bar{display:flex}
+  }
+
+  /* MAIN */
+  main{max-width:1220px;margin:0 auto;padding:18px 14px 80px}
+  .panel{display:none;animation:fadeIn .22s ease}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+  .sec-title{font-family:'Lora',serif;font-size:1.2rem;font-weight:600;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:10px}
+  .sec-sub{color:var(--slate);font-size:.85rem;margin-bottom:18px}
+
+  /* CARD */
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:18px;overflow:hidden}
+  .card-head{padding:13px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .card-head h3{font-family:'Lora',serif;font-size:.95rem;font-weight:600;color:var(--navy)}
+  .card-hint{font-size:.72rem;color:var(--muted)}
+
+  /* TABLE */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;min-width:480px}
+  th{background:var(--navy-lt);color:var(--navy);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px;padding:9px 11px;text-align:left}
+  td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:.84rem}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--navy-lt)}
+  .q-label{font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.88rem}
+
+  /* BADGES */
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+  .b-amber{background:var(--amber-lt);color:#b37800}
+  .b-green{background:var(--green-lt);color:#2a7a5e}
+  .b-rose{background:var(--rose-lt);color:#c04040}
+  .b-slate{background:var(--navy-lt);color:var(--slate)}
+  .b-purple{background:#f0ecff;color:#5c3dac}
+
+  .ssel{border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:.77rem;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);cursor:pointer}
+
+  .editable{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--text);width:100%;outline:none;border-bottom:1px dashed transparent;transition:border-color .2s}
+  .editable:focus{border-bottom-color:var(--navy);background:var(--navy-lt);border-radius:4px;padding:2px 5px}
+  .mu{color:var(--muted);font-style:italic}
+
+  /* BUTTONS */
+  .add-row{display:flex;gap:10px;padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;cursor:pointer;border:none;transition:all .18s;text-decoration:none;-webkit-tap-highlight-color:transparent}
+  .btn-p{background:var(--navy);color:#fff}
+  .btn-p:hover,.btn-p:active{background:var(--navy-dk)}
+  .btn-o{background:var(--card);color:var(--navy);border:1.5px solid var(--navy)}
+  .btn-o:hover{background:var(--navy-lt)}
+  .btn-g{background:var(--green);color:#fff}
+  .btn-sm{padding:6px 12px;font-size:.76rem}
+  .del-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:6px;font-size:1rem;-webkit-tap-highlight-color:transparent}
+  .del-btn:hover,.del-btn:active{color:var(--rose);background:var(--rose-lt)}
+
+  /* GRID */
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:640px){.g2{grid-template-columns:1fr}}
+
+  /* READINGS */
+  .rc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:13px 14px;box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .rc-big{font-family:'Lora',serif;font-size:1.4rem;font-weight:600;color:var(--navy)}
+  .rc-lbl{font-size:.72rem;color:var(--slate);text-transform:uppercase;letter-spacing:.5px}
+  .rc-meta{font-size:.77rem;color:var(--muted)}
+
+  /* QUESTION CARDS */
+  .qcard{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+  .qtop{display:flex;align-items:flex-start;gap:10px}
+  .qnum{background:var(--navy);color:#fff;font-family:'Lora',serif;font-size:1rem;font-weight:600;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+  .qbody{flex:1;min-width:0}
+  .qinput{width:100%;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.93rem;color:var(--text);resize:none;outline:none;min-height:44px;border-bottom:1.5px solid var(--border);padding-bottom:4px}
+  .qinput:focus{border-bottom-color:var(--navy)}
+  .qmeta{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .qplan{flex:1;min-width:180px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--text);background:var(--bg);outline:none}
+  .qplan:focus{border-color:var(--navy)}
+
+  /* PATIENT BAR */
+  .pt-bar{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);flex-wrap:wrap}
+  .pt-bar label{font-size:.74rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+  .pt-bar input{border:none;background:transparent;font-family:'Lora',serif;font-size:.93rem;color:var(--navy);outline:none;border-bottom:1.5px solid var(--border);padding-bottom:2px;min-width:140px}
+  .pt-bar input:focus{border-bottom-color:var(--navy)}
+  .pt-bar .appt-in{width:140px;min-width:unset;font-family:'DM Sans',sans-serif;font-size:.86rem}
+
+  /* URGENT */
+  .uc-ban{background:linear-gradient(90deg,var(--rose),#c94040);color:#fff;border-radius:var(--radius);padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+
+  /* REF CARDS */
+  .rfc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:13px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
+  .rfi{font-size:1.3rem;margin-top:2px}
+  .spc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:13px 14px;margin-bottom:10px}
+
+  /* REFERRAL ALERT */
+  .ref-alert{background:var(--amber-lt);border:1.5px solid var(--amber);border-radius:var(--radius);padding:13px 14px;margin-top:14px;font-size:.82rem;color:#7a5800;line-height:1.6}
+  .ref-alert strong{display:block;margin-bottom:4px}
+
+  /* SCREENING */
+  .scr-ref{background:var(--navy-lt);border-radius:var(--radius);padding:13px 14px;margin-bottom:14px}
+  .scr-ref h4{font-family:'Lora',serif;color:var(--navy);font-size:.9rem;margin-bottom:8px}
+  .scr-list{display:grid;grid-template-columns:1fr 1fr;gap:3px 14px;list-style:none}
+  .scr-list li{font-size:.78rem;color:var(--slate);padding-left:14px;position:relative}
+  .scr-list li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+  @media(max-width:500px){.scr-list{grid-template-columns:1fr}}
+
+  /* INLINE FORM */
+  .if-wrap .form-group{margin-bottom:11px}
+  .if-wrap label{display:block;font-size:.74rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .if-wrap input,.if-wrap select,.if-wrap textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);background:var(--bg);outline:none}
+  .if-wrap input:focus,.if-wrap select:focus,.if-wrap textarea:focus{border-color:var(--navy);background:#fff}
+  .if-wrap textarea{resize:vertical;min-height:64px}
+
+  /* MODAL */
+  .mo{display:none;position:fixed;inset:0;background:rgba(30,42,59,.5);z-index:2000;align-items:center;justify-content:center;padding:14px}
+  .mo.open{display:flex}
+  .mi{background:var(--card);border-radius:16px;padding:20px 18px;width:min(500px,100%);box-shadow:0 12px 40px rgba(30,42,59,.25);animation:fadeIn .2s ease;max-height:90vh;overflow-y:auto}
+  .mi h3{font-family:'Lora',serif;font-size:1.05rem;color:var(--navy);margin-bottom:3px}
+  .mi .msub{font-size:.77rem;color:var(--muted);margin-bottom:13px}
+  .mi .form-group{margin-bottom:11px}
+  .mi .form-group label{display:block;font-size:.74rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .mi .form-group input,.mi .form-group select,.mi .form-group textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);background:var(--bg);outline:none}
+  .mi .form-group input:focus,.mi .form-group select:focus,.mi .form-group textarea:focus{border-color:var(--navy);background:#fff}
+  .mi .form-group textarea{resize:vertical;min-height:64px}
+  .mact{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+  /* PRINT */
+  @media print{
+    header,.disc,.add-row,.del-btn,.print-btn,.btn-p,.btn-o,.btn-g,.btn-sm,
+    .qmeta-btns,.no-print,.menu-toggle,.nav-drawer,.current-tab-bar{display:none!important}
+    .panel{display:none!important}
+    .panel.active{display:block!important}
+    .card,.rc,.qcard,.rfc{box-shadow:none!important;border:1px solid #ccc!important}
+    main{padding:10px!important}
+  }
+</style>
+</head>
+<body>
+
+<!-- DISCLAIMER -->
+<div class="disc" id="disc">
+  <span style="font-size:1.1rem;flex-shrink:0">⚠️</span>
+  <div>
+    <strong>Educational &amp; Tracking Tool Only</strong>
+    For personal health organization and communication with your care team. Does not replace the advice of a licensed healthcare provider.
+  </div>
+  <button class="disc-x" onclick="document.getElementById('disc').style.display='none'">✕</button>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-row">
+    <div class="brand" style="flex:1;min-width:0">
+      <h1>Health Confidence Tracker</h1>
+      <p>WellCharted.health · For tracking &amp; communication purposes only</p>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <!-- Mobile only -->
+    <button class="menu-toggle" id="menu-toggle" onclick="toggleNav()">☰ Menu</button>
+  </div>
+
+  <!-- DESKTOP horizontal tab bar -->
+  <div class="desktop-nav-wrap">
+    <button class="nav-scroll-btn" onclick="scrollNav(-120)">‹</button>
+    <div class="desktop-nav" id="desktop-nav"></div>
+    <button class="nav-scroll-btn" onclick="scrollNav(120)">›</button>
+  </div>
+
+  <!-- MOBILE vertical nav drawer -->
+  <div class="nav-drawer" id="nav-drawer"></div>
+</header>
+
+<!-- CURRENT TAB INDICATOR — mobile only -->
+<div class="current-tab-bar" id="current-tab-bar">
+  <span class="current-tab-label" id="current-tab-label">📱 How To Use</span>
+  <span class="current-tab-hint">👆 Tap ☰ Menu (top right) for all tabs</span>
+</div>
+
+<main id="main"></main>
+<div class="mo" id="modal"><div class="mi" id="modal-inner"></div></div>
+
+<script>
+const TABS=[
+  {id:'howto',icon:'📱',label:'How To Use This Tracker'},
+  {id:'pcp',icon:'📅',label:'PCP Visits'},
+  {id:'questions',icon:'❓',label:'Top 3 Questions'},
+  {id:'history',icon:'📋',label:'Health History'},
+  {id:'urgent',icon:'🚨',label:'Urgent Care'},
+  {id:'bp',icon:'❤️',label:'Blood Pressure'},
+  {id:'bs',icon:'🩸',label:'Blood Sugar'},
+  {id:'meds',icon:'💊',label:'Medications'},
+  {id:'referrals',icon:'🔗',label:'Referrals'},
+  {id:'specialist',icon:'👨‍⚕️',label:'Specialist F/U'},
+  {id:'screening',icon:'🛡️',label:'Preventative Screening'},
+  {id:'vision',icon:'👁️',label:'Vision & Hearing'},
+  {id:'contacts',icon:'📞',label:'Contacts & Insurance'},
+  {id:'upcoming',icon:'📆',label:'Upcoming Appointments'},
+  {id:'labs',icon:'🔬',label:'Lab Results'},
+  {id:'vaccines',icon:'💉',label:'Vaccines & Immunizations'},
+];
+
+function load(k,d){try{const v=localStorage.getItem('hct_'+k);return v?JSON.parse(v):d}catch{return d}}
+function save(k,v){localStorage.setItem('hct_'+k,JSON.stringify(v))}
+
+const S={
+  pcp_routine:load('pcp_routine',[
+    {id:1,quarter:'Q1 2026',months:'Jan – Mar',date:'',notes:'',pcp:'',status:'Scheduled'},
+    {id:2,quarter:'Q2 2026',months:'Apr – Jun',date:'',notes:'',pcp:'',status:'Scheduled'},
+    {id:3,quarter:'Q3 2026',months:'Jul – Sep',date:'',notes:'',pcp:'',status:'Scheduled'},
+    {id:4,quarter:'Q4 2026',months:'Oct – Dec',date:'',notes:'',pcp:'',status:'Scheduled'},
+  ]),
+  pcp_sick:load('pcp_sick',[]),
+  questions:load('questions',[{text:'',plan:'',status:'open'},{text:'',plan:'',status:'open'},{text:'',plan:'',status:'open'}]),
+  pt_name:load('pt_name',''),appt_date:load('appt_date',''),
+  history:load('history',[]),urgent:load('urgent',[]),bp:load('bp',[]),bs:load('bs',[]),
+  meds:load('meds',[]),referrals:load('referrals',[]),specialist:load('specialist',[]),
+  screening:load('screening',[]),vision:load('vision',[]),hearing:load('hearing',[]),
+  emcontacts:load('emcontacts',[]),pharmacy:load('pharmacy',[]),insurance:load('insurance',[]),
+  labs:load('labs',[]),vaccines:load('vaccines',[]),
+};
+
+let activeTab='howto', vhForm='vision', ciForm='contact';
+let navOpen=false;
+let photoCtx=null; // {arrKey, id} — which record's photos are open
+
+function uid(){return Date.now()+Math.random().toString(36).slice(2,6)}
+function gv(id){const e=document.getElementById(id);return e?e.value.trim():''}
+function gtv(id){const e=document.getElementById(id);return e?e.value:''}
+
+function toggleNav(){
+  navOpen=!navOpen;
+  const drawer=document.getElementById('nav-drawer');
+  const btn=document.getElementById('menu-toggle');
+  if(navOpen){
+    drawer.classList.add('open');
+    btn.textContent='✕ Close';
+  } else {
+    drawer.classList.remove('open');
+    btn.textContent='☰ Menu';
+  }
+}
+
+function closeNav(){
+  navOpen=false;
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('menu-toggle').textContent='☰ Menu';
+}
+
+function buildNav(){
+  // Desktop horizontal tabs
+  const desktopNav=document.getElementById('desktop-nav');
+  if(desktopNav){
+    desktopNav.innerHTML=TABS.map(t=>
+      `<button class="dtab${t.id===activeTab?' active':''}" onclick="sw('${t.id}')">${t.icon} ${t.label}</button>`
+    ).join('');
+    setTimeout(()=>{const a=desktopNav.querySelector('.dtab.active');if(a)a.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});},50);
+  }
+  // Mobile drawer
+  const mobileNav=document.getElementById('nav-drawer');
+  if(mobileNav){
+    mobileNav.innerHTML=`<div class="nav-drawer-hint">All <strong>16 tabs</strong> are listed here — tap one to jump to it. <strong>Scroll down ↓</strong> inside this menu to see the rest.</div>`+TABS.map(t=>
+      `<button class="nav-tab${t.id===activeTab?' active':''}" onclick="sw('${t.id}')">
+        <span class="nav-tab-icon">${t.icon}</span> ${t.label}
+      </button>`
+    ).join('');
+  }
+  // Update current tab label (mobile bar)
+  const cur=TABS.find(t=>t.id===activeTab);
+  if(cur){const el=document.getElementById('current-tab-label');if(el)el.textContent=`${cur.icon} ${cur.label}`;}
+}
+
+function scrollNav(dx){const n=document.getElementById('desktop-nav');if(n)n.scrollBy({left:dx,behavior:'smooth'});}
+
+function sw(id){
+  activeTab=id;
+  buildNav();
+  render();
+  closeNav();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function render(){
+  const rs={howto:rHowTo,pcp:rPCP,questions:rQ,history:rHist,urgent:rUC,bp:rBP,bs:rBS,meds:rMeds,
+    referrals:rRef,specialist:rSpec,screening:rScr,vision:rVis,contacts:rCon,
+    upcoming:rUpcoming,labs:rLabs,vaccines:rVax};
+  document.getElementById('main').innerHTML=`<div class="panel active">${(rs[activeTab]||rPCP)()}</div>`;
+}
+
+function sbadge(s){
+  const m={'Completed':'b-green','Complete':'b-green','Reviewed with PCP':'b-green',
+    'Pending':'b-amber','Scheduled':'b-amber','Open':'b-amber',
+    'Cancelled':'b-rose','Missed':'b-rose','No entry':'b-slate','In Progress':'b-slate'};
+  return `<span class="badge ${m[s]||'b-slate'}">${s||'—'}</span>`;
+}
+function ssel(val,fn,opts){
+  const o=opts||['Scheduled','Completed','Pending','Cancelled','Missed','In Progress','No entry'];
+  return `<select class="ssel" onchange="(${fn})(this.value)">${o.map(x=>`<option${x===val?' selected':''}>${x}</option>`).join('')}</select>`;
+}
+
+/* ══ HOW TO USE ══ */
+function rHowTo(){
+  return `<div class="sec-title">📱 How To Use This Tracker</div>
+    <p class="sec-sub">Everything you need to know to get the most out of your Health Confidence Tracker.</p>
+
+    <!-- MOBILE NAV CALLOUT — most important tip -->
+    <div style="background:linear-gradient(135deg,var(--navy-dk),var(--navy));border-radius:var(--radius);padding:18px 16px;margin-bottom:16px;color:#fff">
+      <div style="font-family:'Lora',serif;font-size:1.1rem;font-weight:600;margin-bottom:10px">📱 Navigating on Your Phone</div>
+      <div style="font-size:.92rem;line-height:1.7;opacity:.92">
+        This tracker has <strong style="color:var(--amber)">16 tabs</strong> covering every area of your health.<br><br>
+        On a phone or tablet, all tabs are accessed through the <strong style="color:var(--amber)">gold ☰ Menu button</strong> in the top right corner of the header.<br><br>
+        <strong>Tap ☰ Menu</strong> → a full list of all 16 tabs drops down → <strong>tap any tab</strong> to go there → the menu closes automatically.<br><br>
+        The bar below the header always shows you <strong style="color:var(--amber)">which tab you are currently on.</strong>
+      </div>
+    </div>
+
+    <!-- QUICK START CARDS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">💾</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Auto-Saves to Your Device</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Everything you enter saves automatically to your phone or computer. No account needed. No cloud. Your data stays completely private on your device.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">🖨️</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Print Any Tab</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Tap the <strong>🖨 Print</strong> button in the header to print whichever tab you are currently viewing. Great for bringing your Top 3 Questions or lab results to an appointment.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">❓</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Top 3 Questions</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Before every appointment, go to <strong>Top 3 Questions</strong>, type your questions, then tap <strong>🖨 Print</strong> to bring a copy. Your provider can write the plan right on the page.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">📆</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Upcoming Appointments</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">The <strong>Upcoming Appointments</strong> tab automatically pulls all appointment dates from your PCP Visits, Specialist, and Referral tabs into one view — no double entry needed.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">🔗</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Referral Follow-Up Reminder</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">After logging a referral, the tracker reminds you to follow up within 1 week if you haven't heard back. Don't assume the referral was received — advocate for yourself.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">🔬</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Lab Results Trending</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Log the same test name multiple times and the tracker groups them together so you can see how your values change over time — great for HbA1c, cholesterol, and blood pressure trends.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:1.4rem;margin-bottom:8px">📷</div>
+        <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px">Add Photos to Entries</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.6">Look for the <strong>📷 camera button</strong> on entries in <strong>Sick/Acute Visits, Urgent Care, Medications, Lab Results,</strong> and <strong>Insurance</strong>. Snap or upload a photo — an insurance card, lab report, medication bottle, or rash — to show your provider. Photos stay private on your device.</div>
+      </div>
+    </div>
+
+    <!-- ALL 16 TABS AT A GLANCE -->
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="font-family:'Lora',serif;font-weight:600;color:var(--navy);font-size:1rem;margin-bottom:12px">All 16 Tabs — What Each One Does</div>
+      ${[
+        ['📱','How To Use This Tracker','You are here! Start here if this is your first time.'],
+        ['📅','PCP Visits','Log your quarterly check-ups and sick/acute visits. Edit each quarter with the ✏️ button.'],
+        ['❓','Top 3 Questions','Write your questions before each appointment. Print and bring to the visit.'],
+        ['📋','Health History','Running log of past conditions, treatments, surgeries, and providers.'],
+        ['🚨','Urgent Care','Track unscheduled urgent care and ER visits.'],
+        ['❤️','Blood Pressure','Log readings and see automatic Normal / Elevated / High classification.'],
+        ['🩸','Blood Sugar','Track fasting and post-meal blood sugar readings over time.'],
+        ['💊','Medications','Current and past medications, dosages, prescribers, and status.'],
+        ['🔗','Referrals','Log specialist referrals and track whether they have been completed.'],
+        ['👨‍⚕️','Specialist F/U','Track your specialist team, next appointment dates, and follow-up status.'],
+        ['🛡️','Preventative Screening','Log colonoscopies, mammograms, physicals, and other preventive care.'],
+        ['👁️','Vision & Hearing','Eye exam prescriptions and hearing test results.'],
+        ['📞','Contacts & Insurance','Emergency contacts, pharmacy information, and insurance card details.'],
+        ['📆','Upcoming Appointments','Auto-generated view of all scheduled appointments from your other tabs.'],
+        ['🔬','Lab Results','Log lab values and track trends over time. Grouped by test name automatically.'],
+        ['💉','Vaccines & Immunizations','Log your vaccines with CDC adult schedule reference guide.'],
+      ].map(([icon,name,desc])=>`
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:1.1rem;width:24px;flex-shrink:0">${icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;color:var(--navy);font-size:.88rem">${name}</div>
+            <div style="font-size:.8rem;color:var(--slate);line-height:1.5">${desc}</div>
+          </div>
+          <button class="btn btn-o btn-sm" onclick="sw('${name==='How To Use This Tracker'?'howto':name==='PCP Visits'?'pcp':name==='Top 3 Questions'?'questions':name==='Health History'?'history':name==='Urgent Care'?'urgent':name==='Blood Pressure'?'bp':name==='Blood Sugar'?'bs':name==='Medications'?'meds':name==='Referrals'?'referrals':name==='Specialist F/U'?'specialist':name==='Preventative Screening'?'screening':name==='Vision & Hearing'?'vision':name==='Contacts & Insurance'?'contacts':name==='Upcoming Appointments'?'upcoming':name==='Lab Results'?'labs':'vaccines'}')" style="flex-shrink:0;font-size:.72rem;padding:4px 10px">Go →</button>
+        </div>`).join('')}
+    </div>
+
+    <!-- DISCLAIMER -->
+    <div style="background:var(--amber-lt);border:1.5px solid var(--amber);border-radius:var(--radius);padding:14px 16px;font-size:.82rem;color:#7a5800;line-height:1.7">
+      <strong style="display:block;margin-bottom:4px">⚠️ Educational Tool Disclaimer</strong>
+      This tracker is for personal health organization and communication with your care team only. It does not replace the diagnosis, advice, or treatment of a licensed healthcare provider. Created by a Family Nurse Practitioner to <em>support</em> — not replace — your provider relationship. Always consult your primary care provider for all medical decisions.
+    </div>`;
+}
+
+/* ══ PCP ══ */
+function rPCP(){
+  const rows=S.pcp_routine.map((r,i)=>`<tr>
+    <td><span class="q-label">${r.quarter}</span></td><td>${r.months}</td>
+    <td>${r.date?`<strong>${r.date}</strong>`:`<span class="mu">—</span>`}</td>
+    <td>${r.notes||`<span class="mu">—</span>`}</td>
+    <td>${r.pcp||`<span class="mu">—</span>`}</td>
+    <td><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+      ${ssel(r.status,`function(v){S.pcp_routine[${i}].status=v;save('pcp_routine',S.pcp_routine)}`)}
+      <button class="btn btn-o btn-sm" onclick="openRoutineModal(${i})">✏️</button>
+    </div></td></tr>`).join('');
+  const sick=S.pcp_sick.map((r,i)=>`<tr>
+    <td><span class="badge b-amber">${r.type}</span></td><td>${r.date}</td><td>${r.notes||'—'}</td>
+    <td>${ssel(r.status,`function(v){S.pcp_sick[${i}].status=v;save('pcp_sick',S.pcp_sick)}`)}</td>
+    <td style="white-space:nowrap">${photoBtn('pcp_sick',r.id)}<button class="del-btn" onclick="delSick(${i})">🗑</button></td></tr>`).join('');
+  return `<div class="sec-title">📅 PCP Visits</div>
+    <p class="sec-sub">Track quarterly check-ups and sick/acute visits.</p>
+    <div class="card">
+      <div class="card-head"><h3>Quarterly Routine Follow-Ups</h3></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Quarter</th><th>Months</th><th>Date</th><th>Notes</th><th>PCP</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Sick / Acute Visits</h3></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Type</th><th>Date</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+      <tbody>${sick||`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">No sick visits logged yet.</td></tr>`}</tbody></table></div>
+      <div class="add-row"><button class="btn btn-p" onclick="openM('sick')">+ Add Sick Visit</button></div>
+    </div>`;
+}
+window.delSick=(i)=>{S.pcp_sick.splice(i,1);save('pcp_sick',S.pcp_sick);render()};
+window.openRoutineModal=function(i){
+  const r=S.pcp_routine[i];
+  document.getElementById('modal-inner').innerHTML=`
+    <h3>📅 ${r.quarter}</h3><p class="msub">${r.months}</p>
+    <div class="form-group"><label>Appointment Date</label><input id="rq_d" type="date" value="${r.date||''}" /></div>
+    <div class="form-group"><label>PCP / Provider</label><input id="rq_p" value="${r.pcp||''}" placeholder="Dr. Smith" /></div>
+    <div class="form-group"><label>Notes</label><textarea id="rq_n">${r.notes||''}</textarea></div>
+    <div class="form-group"><label>Status</label><select id="rq_s">${['Scheduled','Completed','Pending','Cancelled','Missed','No entry'].map(o=>`<option${o===r.status?' selected':''}>${o}</option>`).join('')}</select></div>
+    <div class="mact"><button class="btn btn-o" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="saveRM(${i})">Save</button></div>`;
+  document.getElementById('modal').classList.add('open');
+};
+window.saveRM=function(i){
+  S.pcp_routine[i].date=gv('rq_d');S.pcp_routine[i].pcp=gv('rq_p');
+  S.pcp_routine[i].notes=gtv('rq_n').trim();S.pcp_routine[i].status=document.getElementById('rq_s').value;
+  save('pcp_routine',S.pcp_routine);closeM();render();
+};
+
+/* ══ QUESTIONS ══ */
+function rQ(){
+  if(typeof S.questions[0]==='string') S.questions=S.questions.map(t=>({text:t,plan:'',status:'open'}));
+  const cards=S.questions.map((q,i)=>`
+    <div class="qcard"><div class="qtop">
+      <div class="qnum">${i+1}</div>
+      <div class="qbody">
+        <textarea class="qinput" placeholder="Type your question for your next appointment…" oninput="S.questions[${i}].text=this.value">${q.text||''}</textarea>
+        <div class="qmeta">
+          <div style="width:100%;margin-bottom:8px">
+            <div style="font-size:.72rem;font-weight:600;color:var(--slate);text-transform:uppercase;margin-bottom:3px">Provider's Response:</div>
+            <input class="qplan" style="width:100%" placeholder="What did your provider say?" value="${(q.plan||'').replace(/"/g,'&quot;')}" oninput="S.questions[${i}].plan=this.value" />
+          </div>
+          <div class="qmeta-btns" style="display:flex;gap:8px;flex-wrap:wrap">
+            ${q.status==='reviewed'
+              ?`<span class="badge b-green">✓ Reviewed</span><button class="btn btn-o btn-sm" onclick="setQS(${i},'open')">↩ Re-open</button>`
+              :`<button class="btn btn-g btn-sm" onclick="setQS(${i},'reviewed')">✓ Mark Reviewed</button>`}
+            <button class="btn btn-sm" style="background:var(--rose-lt);color:var(--rose);border:1px solid var(--rose)" onclick="clearQ(${i})">🗑 Clear</button>
+          </div>
+        </div>
+      </div>
+    </div></div>`).join('');
+  return `<div class="sec-title">❓ Top 3 Questions</div>
+    <p class="sec-sub">Prepare questions before each appointment. Print and bring with you.</p>
+    <div class="pt-bar">
+      <label>Name:</label><input id="pt_n" value="${(S.pt_name||'').replace(/"/g,'&quot;')}" placeholder="Your Name" oninput="S.pt_name=this.value" />
+      <label>Appt Date:</label><input class="appt-in" id="pt_a" type="date" value="${S.appt_date||''}" oninput="S.appt_date=this.value" />
+    </div>
+    ${cards}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px" class="no-print">
+      <button class="btn btn-p" onclick="saveQs()">💾 Save</button>
+      <button class="btn btn-o" onclick="saveQs();setTimeout(()=>window.print(),150)">🖨 Print</button>
+    </div>`;
+}
+window.setQS=(i,s)=>{S.questions[i].status=s;save('questions',S.questions);render()};
+window.clearQ=(i)=>{S.questions[i]={text:'',plan:'',status:'open'};save('questions',S.questions);render()};
+window.saveQs=()=>{save('questions',S.questions);save('pt_name',S.pt_name);save('appt_date',S.appt_date);toast('✅ Questions saved!')};
+
+/* ══ HISTORY ══ */
+function rHist(){
+  const rows=S.history.map((h,i)=>`<tr><td>${h.year}</td><td>${h.condition}</td><td>${h.treatment}</td><td>${h.provider}</td><td><button class="del-btn" onclick="delH(${i})">🗑</button></td></tr>`).join('')||`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">No history entries yet.</td></tr>`;
+  return `<div class="sec-title">📋 Health History</div><p class="sec-sub">Conditions, treatments, and providers.</p>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Year</th><th>Condition</th><th>Treatment</th><th>Provider</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="add-row"><button class="btn btn-p" onclick="openM('history')">+ Add Entry</button></div></div>`;
+}
+window.delH=(i)=>{S.history.splice(i,1);save('history',S.history);render()};
+
+/* ══ URGENT ══ */
+function rUC(){
+  const rows=S.urgent.map((u,i)=>`<tr><td>${u.date}</td><td>${u.facility}</td><td>${u.reason}</td><td>${u.outcome}</td>
+    <td>${ssel(u.status,`function(v){S.urgent[${i}].status=v;save('urgent',S.urgent)}`)}</td>
+    <td style="white-space:nowrap">${photoBtn('urgent',u.id)}<button class="del-btn" onclick="delUC(${i})">🗑</button></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">No visits logged.</td></tr>`;
+  return `<div class="uc-ban"><span style="font-size:1.4rem">🚨</span><div><h3 style="font-family:Lora,serif">Urgent Care Visits</h3><p style="font-size:.82rem;opacity:.85">Track unscheduled visits and ER trips.</p></div></div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Facility</th><th>Reason</th><th>Outcome</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="add-row"><button class="btn btn-p" onclick="openM('urgent')">+ Log Visit</button></div></div>`;
+}
+window.delUC=(i)=>{S.urgent.splice(i,1);save('urgent',S.urgent);render()};
+
+/* ══ BLOOD PRESSURE ══ */
+function rBP(){
+  const cards=S.bp.slice().reverse().map((r,i)=>{
+    const ri=S.bp.length-1-i;
+    const[sys,dia]=r.reading.split('/').map(Number);
+    let f='b-green',l='Normal';
+    if(sys>=130||dia>=80){f='b-amber';l='Elevated';}
+    if(sys>=140||dia>=90){f='b-rose';l='High';}
+    return `<div class="rc"><div><div class="rc-lbl">Blood Pressure</div>
+      <div class="rc-big">${r.reading} <small style="font-size:.82rem">mmHg</small></div>
+      <div class="rc-meta">${r.date}${r.time?' · '+r.time:''}${r.arm?' · '+r.arm:''}</div></div>
+      <div style="text-align:right"><span class="badge ${f}">${l}</span>
+      <div style="margin-top:6px"><button class="del-btn" onclick="delBP(${ri})">🗑</button></div></div></div>`;
+  }).join('')||`<p style="color:var(--muted);padding:16px">No readings yet.</p>`;
+  return `<div class="sec-title">❤️ Blood Pressure Log</div><p class="sec-sub">Normal: below 120/80 mmHg.</p>
+    <div class="g2"><div>${cards}</div>
+    <div class="card" style="padding:16px">
+      <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:13px">Add Reading</h3>
+      <div class="if-wrap">
+        <div class="form-group"><label>Reading (Sys/Dia)</label><input id="bp_r" placeholder="120/80" /></div>
+        <div class="form-group"><label>Date</label><input id="bp_d" type="date" /></div>
+        <div class="form-group"><label>Time</label><input id="bp_t" type="time" /></div>
+        <div class="form-group"><label>Arm</label><select id="bp_a"><option>Left</option><option>Right</option></select></div>
+        <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addBP()">Add Reading</button>
+      </div>
+    </div></div>`;
+}
+window.addBP=()=>{const r=gv('bp_r'),d=gv('bp_d');if(!r||!d){alert('Please enter a reading and date.');return;}S.bp.push({reading:r,date:d,time:gv('bp_t'),arm:gv('bp_a')});save('bp',S.bp);render()};
+window.delBP=(i)=>{S.bp.splice(i,1);save('bp',S.bp);render()};
+
+/* ══ BLOOD SUGAR ══ */
+function rBS(){
+  const cards=S.bs.slice().reverse().map((r,i)=>{
+    const ri=S.bs.length-1-i;const val=parseFloat(r.value);
+    let f='b-green',l='Normal';
+    if(val>125){f='b-rose';l='High';}else if(val>99){f='b-amber';l='Pre-High';}
+    return `<div class="rc"><div><div class="rc-lbl">Blood Sugar · ${r.context||'—'}</div>
+      <div class="rc-big">${r.value}</div>
+      <div class="rc-meta">${r.date}${r.time?' · '+r.time:''}</div></div>
+      <div style="text-align:right"><span class="badge ${f}">${l}</span>
+      <div style="margin-top:6px"><button class="del-btn" onclick="delBS(${ri})">🗑</button></div></div></div>`;
+  }).join('')||`<p style="color:var(--muted);padding:16px">No readings yet.</p>`;
+  return `<div class="sec-title">🩸 Blood Sugar Log</div><p class="sec-sub">Normal fasting: 70–99 mg/dL.</p>
+    <div class="g2"><div>${cards}</div>
+    <div class="card" style="padding:16px">
+      <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:13px">Add Reading</h3>
+      <div class="if-wrap">
+        <div class="form-group"><label>Result</label><input id="bs_v" placeholder="e.g., 95" /></div>
+        <div class="form-group"><label>Context</label><select id="bs_c"><option>Fasting</option><option>Post-meal</option><option>Random</option><option>Bedtime</option></select></div>
+        <div class="form-group"><label>Date</label><input id="bs_d" type="date" /></div>
+        <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addBS()">Add Reading</button>
+      </div>
+    </div></div>`;
+}
+window.addBS=()=>{const v=gv('bs_v'),d=gv('bs_d');if(!v||!d){alert('Please enter a result and date.');return;}S.bs.push({value:v,context:gv('bs_c'),date:d,time:gv('bs_t')});save('bs',S.bs);render()};
+window.delBS=(i)=>{S.bs.splice(i,1);save('bs',S.bs);render()};
+
+/* ══ MEDICATIONS ══ */
+function rMeds(){
+  const rows=S.meds.map((m,i)=>`<tr><td><strong>${m.name}</strong></td><td>${m.dose}</td><td>${m.freq}</td><td>${m.prescriber}</td><td>${m.start}</td>
+    <td>${ssel(m.status,`function(v){S.meds[${i}].status=v;save('meds',S.meds)}`)}</td>
+    <td style="white-space:nowrap">${photoBtn('meds',m.id)}<button class="del-btn" onclick="delMed(${i})">🗑</button></td></tr>`).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No medications logged.</td></tr>`;
+  return `<div class="sec-title">💊 Medications</div><p class="sec-sub">Current and past medications and dosages.</p>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Medication</th><th>Dose</th><th>Frequency</th><th>Prescriber</th><th>Start</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="add-row"><button class="btn btn-p" onclick="openM('med')">+ Add Medication</button></div></div>`;
+}
+window.delMed=(i)=>{S.meds.splice(i,1);save('meds',S.meds);render()};
+
+/* ══ REFERRALS ══ */
+function rRef(){
+  const cards=S.referrals.map((r,i)=>`
+    <div class="rfc"><div class="rfi">🔗</div>
+      <div style="flex:1;min-width:0">
+        <div><strong>${r.specialist}</strong>${r.specialistName?` — ${r.specialistName}`:''}</div>
+        <div style="font-size:.8rem;color:var(--slate)">Facility: ${r.facility||'—'} · ${r.date||'—'}</div>
+        <div style="margin-top:5px">${sbadge(r.status)}</div>
+      </div>
+      <button class="del-btn" onclick="delRef(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);padding:14px 0">No referrals logged yet.</p>`;
+  return `<div class="sec-title">🔗 Referrals</div><p class="sec-sub">Track specialist referrals and their status.</p>
+    ${cards}<button class="btn btn-p" onclick="openM('referral')">+ Add Referral</button>
+    <div class="ref-alert"><strong>⚠️ Follow Up on Your Referral</strong>If you have not heard back within 1 week, call your PCP's office to confirm the referral was sent and received.</div>`;
+}
+window.delRef=(i)=>{S.referrals.splice(i,1);save('referrals',S.referrals);render()};
+
+/* ══ SPECIALIST ══ */
+function rSpec(){
+  const cards=S.specialist.map((s,i)=>`
+    <div class="spc"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="flex:1;min-width:0"><div style="font-family:Lora,serif;font-weight:600;color:var(--navy)">${s.name}</div>
+        <div style="font-size:.8rem;color:var(--slate)">${s.specialty} · ${s.facility}</div>
+        <div style="font-size:.78rem;color:var(--muted)">Next appt: ${s.nextDate||'—'}</div>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center;flex-shrink:0">${sbadge(s.status)}<button class="del-btn" onclick="delSpec(${i})">🗑</button></div>
+    </div></div>`).join('')||`<p style="color:var(--muted);padding:14px 0">No specialists logged.</p>`;
+  return `<div class="sec-title">👨‍⚕️ Specialist Follow-Ups</div><p class="sec-sub">Track your specialist team and upcoming appointments.</p>
+    ${cards}<button class="btn btn-p" onclick="openM('specialist')">+ Add Specialist</button>`;
+}
+window.delSpec=(i)=>{S.specialist.splice(i,1);save('specialist',S.specialist);render()};
+
+/* ══ SCREENING ══ */
+function rScr(){
+  const cards=S.screening.map((s,i)=>`
+    <div class="rfc"><div class="rfi">🛡️</div>
+      <div style="flex:1;min-width:0">
+        <div><strong>${s.type}</strong>${s.facility?` · ${s.facility}`:''}</div>
+        <div style="font-size:.8rem;color:var(--slate)">Date: ${s.lastDone||'—'}</div>
+        ${s.notes?`<div style="font-size:.78rem;color:var(--muted)">${s.notes}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="delScr(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);font-size:.86rem;padding:12px 0">No screenings recorded yet.</p>`;
+  return `<div class="sec-title">🛡️ Preventative Screening</div><p class="sec-sub">Track colonoscopies, mammograms, physicals, and other preventive care.</p>
+    <div class="g2" style="margin-bottom:16px">
+      <div class="scr-ref"><h4>📋 Commonly Recommended — Female</h4>
+        <ul class="scr-list"><li>Annual well-woman exam</li><li>Mammogram (annually 40+)</li><li>Pap smear (every 3–5 yrs)</li><li>Colorectal screening (45+)</li><li>Bone density (65+)</li><li>Cholesterol panel</li><li>Blood pressure (annually)</li><li>Diabetes screening</li><li>Skin cancer screening</li><li>Eye exam (1–2 yrs)</li></ul>
+      </div>
+      <div class="scr-ref"><h4>📋 Commonly Recommended — Male</h4>
+        <ul class="scr-list"><li>Annual physical exam</li><li>Colorectal screening (45+)</li><li>Prostate / PSA (50+)</li><li>Cholesterol panel</li><li>Blood pressure (annually)</li><li>Diabetes screening</li><li>Lung cancer (50–80)</li><li>Skin cancer screening</li><li>Eye exam (1–2 yrs)</li></ul>
+      </div>
+    </div>
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin-bottom:10px">My Screenings Log</h3>
+    ${cards}
+    <div class="card" style="padding:16px;margin-top:6px">
+      <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:13px">Add Screening</h3>
+      <div class="if-wrap">
+        <div class="form-group"><label>Screening Type</label><input id="sc_t" placeholder="e.g., Colonoscopy, Mammogram" /></div>
+        <div class="form-group"><label>Facility</label><input id="sc_f" placeholder="Where performed" /></div>
+        <div class="form-group"><label>Date Performed</label><input id="sc_d" type="date" /></div>
+        <div class="form-group"><label>Notes</label><textarea id="sc_n" placeholder="Results, next due date…"></textarea></div>
+        <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addScr()">+ Add Screening</button>
+      </div>
+    </div>`;
+}
+window.addScr=()=>{const t=gv('sc_t');if(!t){alert('Please enter a screening type.');return;}S.screening.push({id:uid(),type:t,facility:gv('sc_f'),lastDone:gv('sc_d'),notes:gtv('sc_n').trim()});save('screening',S.screening);render()};
+window.delScr=(i)=>{S.screening.splice(i,1);save('screening',S.screening);render()};
+
+/* ══ VISION & HEARING ══ */
+function rVis(){
+  const vc=S.vision.map((v,i)=>`<div class="rfc"><div class="rfi">👁️</div>
+    <div style="flex:1;min-width:0"><div><strong>${v.provider||'Vision Exam'}</strong> · ${v.date}</div>
+    ${v.notes?`<div style="font-size:.8rem;color:var(--slate)">${v.notes}</div>`:''}</div>
+    <button class="del-btn" onclick="delVis(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);font-size:.86rem;padding:10px 0">No vision exams yet.</p>`;
+  const hc=S.hearing.map((h,i)=>`<div class="rfc"><div class="rfi">👂</div>
+    <div style="flex:1;min-width:0"><div><strong>${h.provider||'Hearing Test'}</strong> · ${h.date}</div>
+    ${h.notes?`<div style="font-size:.8rem;color:var(--slate)">${h.notes}</div>`:''}</div>
+    <button class="del-btn" onclick="delHear(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);font-size:.86rem;padding:10px 0">No hearing tests yet.</p>`;
+  const isV=vhForm==='vision';
+  const form=`<div class="if-wrap">
+    <div class="form-group"><label>Date</label><input id="vh_d" type="date" /></div>
+    <div class="form-group"><label>Provider / Clinic</label><input id="vh_p" placeholder="${isV?'Optometrist':'Audiologist'}" /></div>
+    <div class="form-group"><label>${isV?'Prescription / Notes':'Results / Notes'}</label><textarea id="vh_n" placeholder="${isV?'Prescription, results…':'Results, recommendations…'}"></textarea></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center" onclick="${isV?'addVis()':'addHear()'}">Save ${isV?'Vision Exam':'Hearing Test'}</button></div>`;
+  return `<div class="sec-title">👁️ Vision & Hearing</div><p class="sec-sub">Eye exams, prescriptions, and hearing tests.</p>
+    <div class="g2"><div>
+      <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin-bottom:9px">Vision Exams</h3>${vc}
+      <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin:14px 0 9px">Hearing Tests</h3>${hc}
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="display:flex;border-bottom:1px solid var(--border)">
+        <button onclick="vhForm='vision';render()" style="flex:1;padding:11px;border:none;background:${isV?'var(--navy-lt)':'var(--card)'};color:${isV?'var(--navy)':'var(--slate)'};font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:${isV?'600':'400'};cursor:pointer;border-right:1px solid var(--border)">+ Vision Exam</button>
+        <button onclick="vhForm='hearing';render()" style="flex:1;padding:11px;border:none;background:${!isV?'var(--navy-lt)':'var(--card)'};color:${!isV?'var(--navy)':'var(--slate)'};font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:${!isV?'600':'400'};cursor:pointer">+ Hearing Test</button>
+      </div>
+      <div style="padding:15px">${form}</div>
+    </div></div>`;
+}
+window.addVis=()=>{const d=gv('vh_d');if(!d){alert('Please enter a date.');return;}S.vision.push({id:uid(),date:d,provider:gv('vh_p'),notes:gtv('vh_n').trim()});save('vision',S.vision);render()};
+window.addHear=()=>{const d=gv('vh_d');if(!d){alert('Please enter a date.');return;}S.hearing.push({id:uid(),date:d,provider:gv('vh_p'),notes:gtv('vh_n').trim()});save('hearing',S.hearing);render()};
+window.delVis=(i)=>{S.vision.splice(i,1);save('vision',S.vision);render()};
+window.delHear=(i)=>{S.hearing.splice(i,1);save('hearing',S.hearing);render()};
+
+/* ══ CONTACTS ══ */
+function rCon(){
+  const emc=S.emcontacts.map((c,i)=>`<div class="rfc"><div class="rfi">👤</div>
+    <div style="flex:1;min-width:0"><strong>${c.name}</strong><div style="font-size:.8rem;color:var(--slate)">${c.phone}</div>${c.rel?`<div style="font-size:.77rem;color:var(--muted)">${c.rel}</div>`:''}</div>
+    <button class="del-btn" onclick="delEM(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);padding:12px">No emergency contacts saved yet.</p>`;
+  const phc=S.pharmacy.map((p,i)=>`<div class="rfc"><div class="rfi">💊</div>
+    <div style="flex:1;min-width:0"><strong>${p.name}</strong><div style="font-size:.8rem;color:var(--slate)">${p.phone}</div>${p.address?`<div style="font-size:.77rem;color:var(--muted)">${p.address}</div>`:''}</div>
+    <button class="del-btn" onclick="delPh(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);padding:12px">No pharmacy information saved yet.</p>`;
+  const inc=S.insurance.map((x,i)=>`<div class="rfc"><div class="rfi">🪪</div>
+    <div style="flex:1;min-width:0"><strong>${x.carrier}</strong> <span class="badge b-slate" style="font-size:.68rem">${x.type}</span>
+    <div style="font-size:.8rem;color:var(--slate)">Member ID: ${x.memberId||'—'} · Group: ${x.group||'—'}</div></div>
+    <div style="display:flex;align-items:center;gap:2px;flex-shrink:0">${photoBtn('insurance',x.id)}<button class="del-btn" onclick="delIns(${i})">🗑</button></div></div>`).join('')||`<p style="color:var(--muted);padding:12px">No insurance information saved yet.</p>`;
+  const t3=[['contact','+ Emergency Contact'],['pharmacy','+ Pharmacy'],['insurance','+ Insurance']];
+  const tb=t3.map(([id,lb])=>`<button onclick="ciForm='${id}';render()" style="flex:1;padding:11px 4px;border:none;background:${ciForm===id?'var(--navy-lt)':'var(--card)'};color:${ciForm===id?'var(--navy)':'var(--slate)'};font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:${ciForm===id?'600':'400'};cursor:pointer;border-right:1px solid var(--border)">${lb}</button>`).join('');
+  let fh='';
+  if(ciForm==='contact') fh=`<div class="if-wrap"><div class="form-group"><label>Name</label><input id="ci_n" placeholder="Contact Name" /></div><div class="form-group"><label>Phone / Email</label><input id="ci_ph" placeholder="(555) 123-4567" /></div><div class="form-group"><label>Relationship</label><input id="ci_r" placeholder="e.g., Spouse, Daughter" /></div><button class="btn btn-p" style="width:100%;justify-content:center" onclick="addEM()">Save Contact</button></div>`;
+  else if(ciForm==='pharmacy') fh=`<div class="if-wrap"><div class="form-group"><label>Pharmacy Name</label><input id="ci_n" placeholder="e.g., CVS, Walgreens" /></div><div class="form-group"><label>Phone</label><input id="ci_ph" placeholder="(555) 123-4567" /></div><div class="form-group"><label>Address</label><input id="ci_a" placeholder="123 Main St" /></div><button class="btn btn-p" style="width:100%;justify-content:center" onclick="addPh()">Save Pharmacy</button></div>`;
+  else fh=`<div class="if-wrap"><div class="form-group"><label>Insurance Carrier</label><input id="ci_c" placeholder="e.g., BlueCross, Medicare" /></div><div class="form-group"><label>Type</label><select id="ci_ty"><option>Medical</option><option>Dental</option><option>Vision</option><option>Medicare</option><option>Medicaid</option><option>Other</option></select></div><div class="form-group"><label>Member ID</label><input id="ci_m" placeholder="Member ID" /></div><div class="form-group"><label>Group Number</label><input id="ci_g" placeholder="Group number" /></div><div class="form-group"><label>Member Services Phone</label><input id="ci_ph" placeholder="Number on back of card" /></div><button class="btn btn-p" style="width:100%;justify-content:center" onclick="addIns()">Save Insurance</button></div>`;
+  return `<div class="sec-title">📞 Contacts & Insurance</div><p class="sec-sub">Emergency contacts, pharmacy, and insurance in one place.</p>
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin-bottom:9px">Emergency Contacts</h3>${emc}
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin:14px 0 9px">Pharmacy</h3>${phc}
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin:14px 0 9px">Insurance & ID</h3>${inc}
+    <div class="card" style="margin-top:12px;overflow:hidden">
+      <div style="display:flex;border-bottom:1px solid var(--border)">${tb}</div>
+      <div style="padding:14px">${fh}</div>
+    </div>`;
+}
+window.addEM=()=>{const n=gv('ci_n');if(!n){alert('Please enter a name.');return;}S.emcontacts.push({id:uid(),name:n,phone:gv('ci_ph'),rel:gv('ci_r')});save('emcontacts',S.emcontacts);render()};
+window.addPh=()=>{const n=gv('ci_n');if(!n){alert('Please enter a pharmacy name.');return;}S.pharmacy.push({id:uid(),name:n,phone:gv('ci_ph'),address:gv('ci_a')});save('pharmacy',S.pharmacy);render()};
+window.addIns=()=>{const c=gv('ci_c');if(!c){alert('Please enter a carrier name.');return;}S.insurance.push({id:uid(),carrier:c,type:gv('ci_ty'),memberId:gv('ci_m'),group:gv('ci_g'),phone:gv('ci_ph')});save('insurance',S.insurance);render()};
+window.delEM=(i)=>{S.emcontacts.splice(i,1);save('emcontacts',S.emcontacts);render()};
+window.delPh=(i)=>{S.pharmacy.splice(i,1);save('pharmacy',S.pharmacy);render()};
+window.delIns=(i)=>{S.insurance.splice(i,1);save('insurance',S.insurance);render()};
+
+/* ══ MODAL CONFIGS ══ */
+const MODS={
+  sick:{title:'Add Sick / Acute Visit',fields:[{id:'type',label:'Visit Type',type:'select',opts:['Acute Visit','Sick Visit','Telehealth','ER Visit']},{id:'date',label:'Date',type:'date'},{id:'notes',label:'Reason / Notes',type:'text'},{id:'status',label:'Status',type:'select',opts:['Pending','Completed','Cancelled']}],save(d){S.pcp_sick.push({id:uid(),...d});save('pcp_sick',S.pcp_sick)}},
+  history:{title:'Add Health History Entry',fields:[{id:'year',label:'Year',type:'text',placeholder:'2024'},{id:'condition',label:'Condition / Event',type:'text'},{id:'treatment',label:'Treatment',type:'text'},{id:'provider',label:'Provider / Facility',type:'text'}],save(d){S.history.push({id:uid(),...d});save('history',S.history)}},
+  urgent:{title:'Log Urgent Care Visit',fields:[{id:'date',label:'Date',type:'date'},{id:'facility',label:'Facility Name',type:'text'},{id:'reason',label:'Reason',type:'text'},{id:'outcome',label:'Outcome / Follow-up',type:'text'},{id:'status',label:'Status',type:'select',opts:['Pending','Completed','In Progress']}],save(d){S.urgent.push({id:uid(),...d});save('urgent',S.urgent)}},
+  med:{title:'Add Medication',fields:[{id:'name',label:'Medication Name',type:'text'},{id:'dose',label:'Dosage',type:'text',placeholder:'10mg'},{id:'freq',label:'Frequency',type:'text',placeholder:'Once daily'},{id:'prescriber',label:'Prescribing Doctor',type:'text'},{id:'start',label:'Start Date',type:'date'},{id:'status',label:'Status',type:'select',opts:['Active','On Hold','Discontinued']}],save(d){S.meds.push({id:uid(),...d});save('meds',S.meds)}},
+  referral:{title:'Add Referral',fields:[{id:'specialist',label:'Specialty / Type',type:'text',placeholder:'e.g., Cardiology'},{id:'specialistName',label:'Specialist Name (if known)',type:'text'},{id:'facility',label:'Facility / Practice',type:'text'},{id:'referredBy',label:'Referred By',type:'text'},{id:'date',label:'Referral Date',type:'date'},{id:'status',label:'Status',type:'select',opts:['Pending','Scheduled','Completed','Cancelled']}],save(d){S.referrals.push({id:uid(),...d});save('referrals',S.referrals)}},
+  specialist:{title:'Add Specialist',fields:[{id:'name',label:'Specialist Name',type:'text'},{id:'specialty',label:'Specialty',type:'text'},{id:'facility',label:'Facility / Practice',type:'text'},{id:'nextDate',label:'Next Appointment',type:'date'},{id:'status',label:'Status',type:'select',opts:['Active','Scheduled','Completed','On Hold']},{id:'notes',label:'Notes',type:'textarea'}],save(d){S.specialist.push({id:uid(),...d});save('specialist',S.specialist)}}
+};
+window.openM=function(type){
+  const cfg=MODS[type];if(!cfg)return;
+  const f=cfg.fields.map(f=>{let i;if(f.type==='select')i=`<select id="mf_${f.id}">${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;else if(f.type==='textarea')i=`<textarea id="mf_${f.id}" placeholder="${f.placeholder||''}"></textarea>`;else i=`<input id="mf_${f.id}" type="${f.type}" placeholder="${f.placeholder||''}" />`;return `<div class="form-group"><label>${f.label}</label>${i}</div>`;}).join('');
+  document.getElementById('modal-inner').innerHTML=`<h3>${cfg.title}</h3>${f}<div class="mact"><button class="btn btn-o" onclick="closeM()">Cancel</button><button class="btn btn-p" onclick="subM('${type}')">Save</button></div>`;
+  document.getElementById('modal').classList.add('open');
+};
+window.subM=function(type){const cfg=MODS[type];const d={};cfg.fields.forEach(f=>{d[f.id]=gv('mf_'+f.id)});cfg.save(d);closeM();render();};
+window.closeM=()=>document.getElementById('modal').classList.remove('open');
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeM()});
+
+/* ══ PHOTOS — shared capture/upload system ══
+   Photos are stored on each record as record.photos = [dataURI,…].
+   Images are auto-resized before saving so localStorage doesn't fill up. */
+function findRec(arrKey,id){return (S[arrKey]||[]).find(r=>String(r.id)===String(id));}
+function photoCount(arrKey,id){const r=findRec(arrKey,id);return r&&r.photos?r.photos.length:0;}
+function photoBtn(arrKey,id,label){
+  const n=photoCount(arrKey,id);
+  const badge=n?`<span style="position:absolute;top:-4px;right:-4px;background:var(--navy);color:#fff;font-size:.58rem;font-weight:700;border-radius:10px;padding:0 4px;min-width:15px;text-align:center;line-height:1.5">${n}</span>`:'';
+  return `<button class="del-btn" title="Add or view photos" onclick="openPhotos('${arrKey}','${id}')" style="position:relative;color:${n?'var(--navy)':'var(--muted)'}">📷${badge}</button>`;
+}
+window.openPhotos=function(arrKey,id){
+  photoCtx={arrKey,id};
+  renderPhotoModal();
+  document.getElementById('modal').classList.add('open');
+};
+function renderPhotoModal(){
+  if(!photoCtx)return;
+  const {arrKey,id}=photoCtx;
+  const r=findRec(arrKey,id);
+  const photos=(r&&r.photos)||[];
+  const thumbs=photos.map((p,idx)=>`
+    <div style="position:relative;display:inline-block">
+      <img src="${p}" onclick="viewPhoto('${arrKey}','${id}',${idx})" alt="photo ${idx+1}" style="width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer" />
+      <button onclick="removePhoto('${arrKey}','${id}',${idx})" title="Delete photo" style="position:absolute;top:-7px;right:-7px;background:var(--rose);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:.78rem;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.3)">✕</button>
+    </div>`).join('')||`<p style="color:var(--muted);font-size:.84rem;margin:2px 0">No photos added yet.</p>`;
+  document.getElementById('modal-inner').innerHTML=`
+    <h3>📷 Photos</h3>
+    <p class="msub">Take a new photo or upload one from this device — helpful for showing your provider an insurance card, a lab report, a medication bottle, or a rash. Photos stay private on this device only.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">${thumbs}</div>
+    <label class="btn btn-p" style="width:100%;justify-content:center;cursor:pointer">
+      📷 Take or Upload a Photo
+      <input type="file" accept="image/*" onchange="handlePhoto(event)" style="display:none" />
+    </label>
+    <p style="font-size:.7rem;color:var(--muted);margin-top:9px;text-align:center;line-height:1.5">Photos are automatically resized to save space. Tap any photo to view it full size.</p>
+    <div class="mact"><button class="btn btn-o" onclick="closeM();render()">Done</button></div>`;
+}
+window.handlePhoto=function(e){
+  const file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  if(!file.type||!file.type.startsWith('image/')){alert('Please choose an image file (a photo).');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1200;let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>=h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+      let dataUri;
+      try{dataUri=c.toDataURL('image/jpeg',0.7);}
+      catch(err){alert('Sorry, that image could not be processed. Please try another photo.');return;}
+      savePhoto(dataUri);
+    };
+    img.onerror=()=>alert('That image could not be opened. Please try a different photo.');
+    img.src=ev.target.result;
+  };
+  reader.onerror=()=>alert('That file could not be read. Please try again.');
+  reader.readAsDataURL(file);
+};
+function savePhoto(dataUri){
+  if(!photoCtx)return;
+  const {arrKey,id}=photoCtx;
+  const r=findRec(arrKey,id);if(!r)return;
+  if(!r.photos)r.photos=[];
+  r.photos.push(dataUri);
+  try{
+    save(arrKey,S[arrKey]);
+  }catch(err){
+    r.photos.pop();
+    toast('⚠️ This device is low on storage space, so the photo could not be saved. Try deleting an older photo first.');
+    return;
+  }
+  renderPhotoModal();
+}
+window.removePhoto=function(arrKey,id,idx){
+  const r=findRec(arrKey,id);if(!r||!r.photos)return;
+  r.photos.splice(idx,1);
+  save(arrKey,S[arrKey]);
+  renderPhotoModal();
+};
+window.viewPhoto=function(arrKey,id,idx){
+  const r=findRec(arrKey,id);if(!r||!r.photos)return;
+  const src=r.photos[idx];if(!src)return;
+  let lb=document.getElementById('photo-lightbox');
+  if(!lb){
+    lb=document.createElement('div');lb.id='photo-lightbox';
+    lb.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.9);z-index:3000;display:flex;align-items:center;justify-content:center;padding:18px';
+    lb.addEventListener('click',()=>lb.remove());
+    document.body.appendChild(lb);
+  }
+  lb.innerHTML=`<img src="${src}" alt="full size photo" style="max-width:100%;max-height:90vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.5)" />
+    <button title="Close" style="position:absolute;top:16px;right:18px;background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:1.3rem;cursor:pointer">✕</button>`;
+};
+
+/* ══ UPCOMING ══ */
+function rUpcoming(){
+  const now=new Date();now.setHours(0,0,0,0);const all=[];
+  S.pcp_routine.forEach(r=>{if(r.date){const d=new Date(r.date+'T00:00:00');all.push({date:r.date,_d:d,type:'PCP Routine',label:r.quarter,provider:r.pcp||'—',status:r.status});}});
+  S.pcp_sick.forEach(r=>{if(r.date){const d=new Date(r.date+'T00:00:00');all.push({date:r.date,_d:d,type:r.type,label:r.type,provider:'—',status:r.status});}});
+  S.specialist.forEach(r=>{if(r.nextDate){const d=new Date(r.nextDate+'T00:00:00');all.push({date:r.nextDate,_d:d,type:'Specialist',label:r.specialty||r.name,provider:r.name,status:r.status});}});
+  all.sort((a,b)=>a._d-b._d);
+  const upcoming=all.filter(a=>a._d>=now);
+  const past=all.filter(a=>a._d<now).reverse().slice(0,5);
+  const tc={'PCP Routine':'b-green','Acute Visit':'b-amber','Sick Visit':'b-amber','Telehealth':'b-slate','ER Visit':'b-rose','Specialist':'b-purple'};
+  function apptCard(a,isPast){
+    const diff=Math.round((a._d-now)/(1000*60*60*24));
+    let countdown='';
+    if(!isPast){if(diff===0)countdown=`<span class="badge b-rose">TODAY</span>`;else if(diff===1)countdown=`<span class="badge b-amber">TOMORROW</span>`;else if(diff<=7)countdown=`<span class="badge b-amber">In ${diff} days</span>`;}
+    return `<div class="rfc" style="${isPast?'opacity:.7':''}">
+      <div style="min-width:44px;text-align:center;flex-shrink:0">
+        <div style="font-family:Lora,serif;font-size:1.2rem;font-weight:600;color:var(--navy);line-height:1">${a._d.getDate()}</div>
+        <div style="font-size:.68rem;color:var(--slate);text-transform:uppercase">${a._d.toLocaleString('default',{month:'short'})}</div>
+        <div style="font-size:.68rem;color:var(--muted)">${a._d.getFullYear()}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="badge ${tc[a.type]||'b-slate'}">${a.type}</span>
+          <strong style="font-size:.88rem">${a.label}</strong>${countdown}
+        </div>
+        <div style="font-size:.8rem;color:var(--slate)">Provider: ${a.provider}</div>
+        <div style="margin-top:4px">${sbadge(a.status)}</div>
+      </div></div>`;
+  }
+  return `<div class="sec-title">📆 Upcoming Appointments</div>
+    <p class="sec-sub">Auto-pulled from PCP Visits, Specialist, and Referral tabs.</p>
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin-bottom:12px">Upcoming & Scheduled</h3>
+    ${upcoming.length?upcoming.map(a=>apptCard(a,false)).join(''):`<div class="card" style="padding:20px;text-align:center;color:var(--muted)">No upcoming appointments. Add dates in other tabs.</div>`}
+    <h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin:20px 0 12px">Recent Past (Last 5)</h3>
+    ${past.length?past.map(a=>apptCard(a,true)).join(''):`<p style="color:var(--muted);font-size:.85rem">No recent past appointments.</p>`}`;
+}
+
+/* ══ LABS ══ */
+function rLabs(){
+  const groups={};
+  S.labs.forEach((l,i)=>{const key=l.test.toLowerCase().trim();if(!groups[key])groups[key]={name:l.test,entries:[]};groups[key].entries.push({...l,i});});
+  const groupCards=Object.values(groups).map(g=>{
+    const sorted=g.entries.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const latest=sorted[0];
+    let fc='b-green';if(latest.flag==='High'||latest.flag==='Critical')fc='b-rose';else if(latest.flag==='Low'||latest.flag==='Borderline')fc='b-amber';
+    return `<div class="card" style="margin-bottom:12px"><div style="padding:13px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:7px">
+        <div><div style="font-family:Lora,serif;font-weight:600;color:var(--navy)">${g.name}</div>
+        <div style="font-size:.8rem;color:var(--slate)">Latest: ${latest.date} · ${latest.provider||'—'}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="text-align:right"><div style="font-family:Lora,serif;font-size:1.3rem;font-weight:600;color:var(--navy)">${latest.value}<small style="font-size:.72rem;font-weight:400"> ${latest.unit||''}</small></div>
+          <div style="font-size:.72rem;color:var(--muted)">Ref: ${latest.refRange||'—'}</div></div>
+          <span class="badge ${fc}">${latest.flag||'Normal'}</span>
+          ${photoBtn('labs',latest.id)}<button class="del-btn" onclick="delLab(${latest.i})">🗑</button>
+        </div>
+      </div>
+    </div></div>`;
+  });
+  return `<div class="sec-title">🔬 Lab Results</div><p class="sec-sub">Log and track lab values over time.</p>
+    <div class="g2"><div><h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin-bottom:12px">My Lab Results</h3>
+      ${groupCards.length?groupCards.join(''):`<p style="color:var(--muted);padding:12px 0">No lab results logged yet.</p>`}
+    </div>
+    <div><div class="card" style="padding:16px">
+      <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:12px">Add Lab Result</h3>
+      <div class="if-wrap">
+        <div class="form-group"><label>Test Name</label><input id="lb_t" placeholder="e.g., HbA1c, Cholesterol" /></div>
+        <div class="form-group"><label>Result Value</label><input id="lb_v" placeholder="e.g., 5.8" /></div>
+        <div class="form-group"><label>Unit (optional)</label><input id="lb_u" placeholder="e.g., %, mg/dL" /></div>
+        <div class="form-group"><label>Reference Range</label><input id="lb_r" placeholder="e.g., &lt;5.7%" /></div>
+        <div class="form-group"><label>Flag</label><select id="lb_f"><option>Normal</option><option>Borderline</option><option>Low</option><option>High</option><option>Critical</option></select></div>
+        <div class="form-group"><label>Date Drawn</label><input id="lb_d" type="date" /></div>
+        <div class="form-group"><label>Provider / Lab</label><input id="lb_p" placeholder="e.g., Dr. Smith" /></div>
+        <div class="form-group"><label>Notes</label><textarea id="lb_n" placeholder="e.g., Fasting specimen…"></textarea></div>
+        <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addLab()">Add Lab Result</button>
+      </div>
+    </div></div></div>`;
+}
+window.addLab=()=>{const t=gv('lb_t'),v=gv('lb_v');if(!t||!v){alert('Please enter a test name and result.');return;}S.labs.push({id:uid(),test:t,value:v,unit:gv('lb_u'),refRange:gv('lb_r'),flag:gv('lb_f'),date:gv('lb_d'),provider:gv('lb_p'),notes:gtv('lb_n').trim()});save('labs',S.labs);render();};
+window.delLab=(i)=>{S.labs.splice(i,1);save('labs',S.labs);render()};
+
+/* ══ VACCINES ══ */
+function rVax(){
+  const logged=S.vaccines.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const cards=logged.map((v,i)=>`<div class="rfc"><div class="rfi">💉</div>
+    <div style="flex:1;min-width:0"><div><strong>${v.name}</strong>${v.dose?` · ${v.dose}`:''}</div>
+    <div style="font-size:.8rem;color:var(--slate)">Date: ${v.date||'—'} · ${v.provider||'—'}</div>
+    ${v.nextDue?`<div style="font-size:.77rem;color:var(--amber);font-weight:500">Next due: ${v.nextDue}</div>`:''}</div>
+    <button class="del-btn" onclick="delVax(${i})">🗑</button></div>`).join('')||`<p style="color:var(--muted);padding:12px 0">No vaccines logged yet.</p>`;
+  const schedule=[{vax:'Influenza (Flu)',freq:'Annually',badge:'b-green'},{vax:'COVID-19',freq:'As updated',badge:'b-green'},{vax:'Tdap / Td',freq:'Every 10 yrs',badge:'b-green'},{vax:'Pneumococcal',freq:'Once (65+)',badge:'b-amber'},{vax:'Shingles (Shingrix)',freq:'2-dose (50+)',badge:'b-amber'},{vax:'RSV',freq:'Once (60+)',badge:'b-amber'},{vax:'Hepatitis B',freq:'3-dose series',badge:'b-slate'},{vax:'Hepatitis A',freq:'2-dose series',badge:'b-slate'},{vax:'HPV',freq:'Through age 26',badge:'b-slate'}];
+  return `<div class="sec-title">💉 Vaccines & Immunizations</div><p class="sec-sub">Log your vaccination history and reference the adult schedule.</p>
+    <div class="g2"><div><h3 style="font-family:Lora,serif;color:var(--navy);font-size:.95rem;margin-bottom:12px">My Vaccination Record</h3>${cards}</div>
+    <div>
+      <div class="card" style="padding:16px;margin-bottom:12px">
+        <h3 style="font-family:Lora,serif;color:var(--navy);margin-bottom:12px">Log a Vaccine</h3>
+        <div class="if-wrap">
+          <div class="form-group"><label>Vaccine Name</label><input id="vx_n" placeholder="e.g., Influenza, Shingrix" /></div>
+          <div class="form-group"><label>Dose / Series</label><input id="vx_ds" placeholder="e.g., Annual, Dose 1 of 2" /></div>
+          <div class="form-group"><label>Date Given</label><input id="vx_d" type="date" /></div>
+          <div class="form-group"><label>Given By / Location</label><input id="vx_p" placeholder="e.g., Dr. Smith, CVS" /></div>
+          <div class="form-group"><label>Next Dose Due (optional)</label><input id="vx_nd" type="date" /></div>
+          <button class="btn btn-p" style="width:100%;justify-content:center" onclick="addVax()">Log Vaccine</button>
+        </div>
+      </div>
+      <div class="scr-ref"><h4>💉 Adult Immunization Schedule</h4>
+        ${schedule.map(s=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+          <span class="badge ${s.badge}" style="white-space:nowrap;flex-shrink:0">${s.freq}</span>
+          <div style="font-size:.82rem;font-weight:600;color:var(--navy)">${s.vax}</div></div>`).join('')}
+        <p style="font-size:.7rem;color:var(--muted);font-style:italic">Discuss your individual schedule with your provider.</p>
+      </div>
+    </div></div>`;
+}
+window.addVax=()=>{const n=gv('vx_n'),d=gv('vx_d');if(!n||!d){alert('Please enter a vaccine name and date.');return;}S.vaccines.push({id:uid(),name:n,dose:gv('vx_ds'),date:d,provider:gv('vx_p'),nextDue:gv('vx_nd')});save('vaccines',S.vaccines);render();};
+window.delVax=(i)=>{S.vaccines.splice(i,1);save('vaccines',S.vaccines);render()};
+
+function toast(msg){const t=document.createElement('div');t.innerHTML=msg;Object.assign(t.style,{position:'fixed',bottom:'20px',right:'16px',background:'var(--navy)',color:'#fff',padding:'11px 16px',borderRadius:'8px',fontFamily:'DM Sans,sans-serif',fontSize:'.84rem',zIndex:9999,boxShadow:'0 4px 16px rgba(0,0,0,.2)',maxWidth:'280px'});document.body.appendChild(t);setTimeout(()=>t.remove(),3200);}
+
+buildNav();
+render();
+</script>
+</body>
+</html>
